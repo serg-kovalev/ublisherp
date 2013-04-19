@@ -1,14 +1,13 @@
 require 'spec_helper'
-require 'ublisherp'
 
-describe Publisher do
+describe Ublisherp::Publisher do
 
-  let :card do
-    Card.new('title', 'body')
+  let :content_item do
+    ContentItem.new
   end
 
   it 'does things' do
-    expect(card).to be_true
-    expect(Publisher.new(card)).to be_true
+    expect(content_item).to be_true
+    expect(Ublisherp::Publisher.new content_item ).to be_true
   end
 end
