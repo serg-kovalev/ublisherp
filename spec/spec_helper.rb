@@ -1,8 +1,6 @@
 require 'rubygems'
 require 'bundler/setup'
-Bundler.require
-require 'active_record'
-require 'active_support'
+Bundler.require :default, :test
 
 RSpec.configure do |config|
   # config.treat_symbols_as_metadata_keys_with_true_values = true
@@ -31,6 +29,6 @@ RSpec.configure do |config|
   end
 end
 
-require 'ublisherp'
+require_relative '../lib/ublisherp'
 
 Dir["./spec/models/*.rb"].each {|file| require file }

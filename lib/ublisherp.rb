@@ -1,5 +1,9 @@
+require 'bundler/setup'
+Bundler.require :default
+
 module Ublisherp
 end
 
-require 'ublisherp_publisher'
-require 'ublisherp_publishable'
+Dir[File.join(File.dirname(__FILE__), 'ublisherp/*.rb')].each do |fn|
+  require_relative "./ublisherp/#{File.basename(fn, '.rb')}"
+end
