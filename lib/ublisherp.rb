@@ -183,12 +183,12 @@ class TagPublisher < Publisher
   end
 end
 
-redis_clean
+# redis_clean
 
-c = Card.new('Hello', 'there')
-c.add_tag 'cheese'
-c.add_tag 'region/north'
-c.save
+# c = Card.new('Hello', 'there')
+# c.add_tag 'cheese'
+# c.add_tag 'region/north'
+# c.save
 
-binding.pry
+# binding.pry
 

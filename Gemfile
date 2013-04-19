@@ -11,3 +11,6 @@ gem 'activesupport', '~> 3.2', require: 'active_support/all'
 gem 'pry'
 gem 'pry-debugger'
 
+group :test do
+  gem 'rspec'
+end
