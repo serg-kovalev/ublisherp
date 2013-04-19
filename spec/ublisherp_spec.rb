@@ -7,8 +7,8 @@ describe Ublisherp::Publishable do
   end
 
   it 'Caches the publisher' do
-    # pub = Ublisherp::Publisher.new content_item
-    # expect(pub.publisher.class).to be Publisher
+    pub = content_item.publisher.class
+    expect(pub).to be Ublisherp::Publisher
   end
 
 end

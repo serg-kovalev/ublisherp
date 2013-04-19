@@ -20,7 +20,7 @@ module Ublisherp::Publishable
       begin
         "#{self.class.name}Publisher".constantize.new self
       rescue NameError
-        Publisher.new self
+        Ublisherp::Publisher.new self
       end
   end
 

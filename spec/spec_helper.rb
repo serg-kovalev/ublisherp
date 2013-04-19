@@ -27,11 +27,10 @@ RSpec.configure do |config|
   end
 
   config.before :each do
-
     $redis.flushdb
   end
 end
 
-require 'ublisherp_base'
+require 'ublisherp'
 
 Dir["./spec/models/*.rb"].each {|file| require file }
