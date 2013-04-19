@@ -1,3 +1,6 @@
+require 'rubygems'
+require 'bundler/setup'
+Bundler.require
 require 'active_record'
 require 'active_support'
 
@@ -14,6 +17,7 @@ RSpec.configure do |config|
 
   config.before :all do
     $redis = Redis.new(db: 15)
+
     ActiveRecord::Base.establish_connection(
       adapter: "sqlite3",
       database: ":memory:"

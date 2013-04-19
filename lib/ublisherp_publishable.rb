@@ -1,7 +1,3 @@
-require 'rubygems'
-require 'bundler/setup'
-Bundler.require
-
 require 'securerandom'
 
 module Ublisherp::Publishable
@@ -17,15 +13,16 @@ module Ublisherp::Publishable
 #       end
 #     end
 #   end
+  attr_accessor :publisher
 
-#   def publisher
-#     begin
-#       cls = "#{self.class.name}Publisher".constantize
-#     rescue NameError
-#       cls = Publisher
-#     end
-#     cls.new self
-#   end
+  def publisher
+    @publisher ||=
+      begin
+        "#{self.class.name}Publisher".constantize.new self
+      rescue NameError
+        Publisher.new self
+      end
+  end
 
 #   def publish!(**options)
 #     publisher.publish!(**options)
@@ -41,5 +38,3 @@ module Ublisherp::Publishable
 #     alias_method_chain :save, :publish
 #   end
 end
-
-
