@@ -1,4 +1,5 @@
 class Ublisherp::Publisher
+  include Ublisherp
 
   attr_reader :publishable
 
@@ -7,23 +8,35 @@ class Ublisherp::Publisher
   end
 
   def publish!(**options)
-    redis.set publishable_key, publishable.to_json
+    Ublisherp.redis.multi do
+      Ublisherp.redis.set publishable_key, publishable.to_publishable
 
-    publishable_name = publishable.class.name.underscore.to_sym
-    publishable.class.publish_associations.each do |assoc|
-      Array(publishable.send(assoc)).each do |a|
-        a.publish!(publishable_name => publishable)
+      publishable_name = publishable.class.name.underscore.to_sym
+      publishable.class.publish_associations.each do |assoc|
+        Array(publishable.send(assoc)).each do |a|
+          a.publish!(publishable_name => publishable)
+        end
+      end
+
+      if respond_to?(:before_publish_commit!)
+        before_publish_commit!(**options)
       end
     end
+  end
 
-    after_publish!(**options) if respond_to?(:after_publish!)
+  def unpublish!(**options)
+    Ublisherp.redis.multi do
+      Ublisherp.redis.sadd RedisKeys.gone_keys, publishable_key
+      Ublisherp.redis.del publishable_key
+
+      if respond_to?(:before_unpublish_commit!)
+        before_unpublish_commit!(**options)
+      end
+    end
   end
 
   def publishable_key
-    self.class.publishable_key publishable
+    @publishable_key ||= RedisKeys.key_for(publishable)
   end
-  
-  def self.publishable_key(publishable)
-    "#{publishable.class.name}:#{publishable.id}"
-  end
+
 end

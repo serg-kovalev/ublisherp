@@ -25,7 +25,41 @@ describe Ublisherp do
     end
 
     it 'sets something in a redis key for the content item' do
-      expect($redis.get()).to be_nil
+      expect($redis.get(Ublisherp::RedisKeys.key_for(content_item))).to be_nil
+
+      content_item.save
+      content_item.publish!
+
+      expect($redis.get(Ublisherp::RedisKeys.key_for(content_item))).to eq(
+        content_item.to_publishable)
+    end
+
+    it 'removes an item from redis when it is unpublished' do
+      content_item.save
+      content_item.publish!
+      content_item.unpublish!
+
+      expect($redis.get(Ublisherp::RedisKeys.key_for(content_item))).to be_nil
+    end
+
+    it 'adds an unpublished key to the gone_keys set' do
+      content_item.save
+      content_item.publish!
+      content_item.unpublish!
+
+      expect($redis.sismember(
+        Ublisherp::RedisKeys.gone_keys,
+        Ublisherp::RedisKeys.key_for(content_item))).to be_true
+    end
+
+    it 'runs callbacks on publish' do
+      content_item.publisher.should_receive(:before_publish_commit!)
+      content_item.publish!
+    end
+
+    it 'runs callbacks on unpublish' do
+      content_item.publisher.should_receive(:before_unpublish_commit!)
+      content_item.unpublish!
     end
   end
 end

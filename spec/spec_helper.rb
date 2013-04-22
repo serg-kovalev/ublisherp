@@ -15,6 +15,7 @@ RSpec.configure do |config|
 
   config.before :all do
     $redis = Redis.new(db: 15)
+    Ublisherp.redis = $redis
 
     ActiveRecord::Base.establish_connection(
       adapter: "sqlite3",

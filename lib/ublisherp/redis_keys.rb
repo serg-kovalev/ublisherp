@@ -8,4 +8,7 @@ module Ublisherp::RedisKeys
     "#{key_for(obj)}:stream"
   end
 
+  def self.gone_keys
+    "gone_keys"
+  end
 end

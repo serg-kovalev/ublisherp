@@ -22,4 +22,10 @@ module Ublisherp::Publishable
   def publish!(**options)
     publisher.publish!(**options)
   end
+
+  def unpublish!(**options)
+    publisher.unpublish!(**options)
+  end
+
+  alias :to_publishable :to_json
 end
