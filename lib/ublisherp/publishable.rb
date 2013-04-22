@@ -4,9 +4,9 @@ module Ublisherp::Publishable
   extend ActiveSupport::Concern
 
   module ClassMethods
-    def publish_associations(assocs = [])
+    def publish_associations(*assocs)
       (@publish_associations ||= []
-        ).concat assocs
+        ).concat Array(assocs || [])
     end
   end
 

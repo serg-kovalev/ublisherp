@@ -6,6 +6,10 @@ describe Ublisherp do
     ContentItem.new
   end
 
+  let :tag do
+    Tag.new
+  end
+
   describe Ublisherp::Publishable do
     it 'caches the publisher' do
       pub = content_item.publisher.class
@@ -60,6 +64,14 @@ describe Ublisherp do
     it 'runs callbacks on unpublish' do
       content_item.publisher.should_receive(:before_unpublish_commit!)
       content_item.unpublish!
+    end
+
+    it 'also publishes associated objects declared with publishes_associations' do
+      tag.save
+      content_item.tags << tag
+      content_item.publish!
+
+      expect($redis.get(Ublisherp::RedisKeys.key_for(tag))).to_not be_nil
     end
   end
 end
