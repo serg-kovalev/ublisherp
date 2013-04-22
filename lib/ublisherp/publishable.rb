@@ -5,8 +5,8 @@ module Ublisherp::Publishable
 
   module ClassMethods
     def publish_associations(*assocs)
-      (@publish_associations ||= []
-        ).concat Array(assocs || [])
+      @publish_associations ||= []
+      @publish_associations.concat Array.new(assocs || [])
     end
   end
 
