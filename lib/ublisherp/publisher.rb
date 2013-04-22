@@ -11,12 +11,7 @@ class Ublisherp::Publisher
     Ublisherp.redis.multi do
       Ublisherp.redis.set publishable_key, publishable.to_publishable
 
-      publishable_name = publishable.class.name.underscore.to_sym
-      publishable.class.publish_associations.each do |assoc|
-        Array(publishable.send(assoc)).each do |a|
-          a.publish!(publishable_name => publishable)
-        end
-      end
+      publish_associations
 
       if respond_to?(:before_publish_commit!)
         before_publish_commit!(**options)
@@ -35,8 +30,23 @@ class Ublisherp::Publisher
     end
   end
 
+  private
+
+  def publish_associations
+    # binding.pry
+    publishable.class.publish_associations.each do |association|
+      publishable.send(association).find_each(batch_size: 1000) do |instance|
+        instance.publish!(publishable_name => publishable)
+      end
+    end
+  end
+
+  def publishable_name
+    publishable.class.name.underscore.to_sym
+  end
+
   def publishable_key
-    @publishable_key ||= RedisKeys.key_for(publishable)
+    RedisKeys.key_for(publishable)
   end
 
 end

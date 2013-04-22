@@ -69,6 +69,7 @@ describe Ublisherp do
     it 'also publishes associated objects declared with publishes_associations' do
       tag.save
       content_item.tags << tag
+      content_item.save
       content_item.publish!
 
       expect($redis.get(Ublisherp::RedisKeys.key_for(tag))).to_not be_nil

@@ -7,6 +7,7 @@ module Ublisherp::Publishable
     def publish_associations(*assocs)
       @publish_associations ||= []
       @publish_associations.concat Array.new(assocs || [])
+      @publish_associations
     end
   end
 
