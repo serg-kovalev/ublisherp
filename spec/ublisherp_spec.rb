@@ -28,6 +28,11 @@ describe Ublisherp do
       content_item.publisher
     end
 
+    def all_key_score
+      $redis.zscore Ublisherp::RedisKeys.key_for_all(content_item),
+                    Ublisherp::RedisKeys.key_for(content_item)
+    end
+
     it 'sets something in a redis key for the content item' do
       expect($redis.get(Ublisherp::RedisKeys.key_for(content_item))).to be_nil
 
@@ -38,6 +43,15 @@ describe Ublisherp do
         content_item.to_publishable)
     end
 
+    it 'adds something to the classes all sorted set when published' do
+      expect(all_key_score).to be_nil
+
+      content_item.save
+      content_item.publish!
+      
+      expect(all_key_score).to_not be_nil
+    end
+
     it 'removes an item from redis when it is unpublished' do
       content_item.save
       content_item.publish!
@@ -46,13 +60,21 @@ describe Ublisherp do
       expect($redis.get(Ublisherp::RedisKeys.key_for(content_item))).to be_nil
     end
 
+    it 'removes something to the classes all sorted set when unpublished' do
+      content_item.save
+      content_item.publish!
+      content_item.unpublish!
+
+      expect(all_key_score).to be_nil
+    end
+
     it 'adds an unpublished key to the gone_keys set' do
       content_item.save
       content_item.publish!
       content_item.unpublish!
 
       expect($redis.sismember(
-        Ublisherp::RedisKeys.gone_keys,
+        Ublisherp::RedisKeys.gone,
         Ublisherp::RedisKeys.key_for(content_item))).to be_true
     end
 
