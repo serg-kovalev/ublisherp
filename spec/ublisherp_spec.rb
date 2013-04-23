@@ -3,7 +3,9 @@ require 'spec_helper'
 describe Ublisherp do
 
   let :content_item do
-    ContentItem.new
+    ci = ContentItem.new
+    ci.save
+    ci
   end
 
   let :tag do
@@ -36,7 +38,6 @@ describe Ublisherp do
     it 'sets something in a redis key for the content item' do
       expect($redis.get(Ublisherp::RedisKeys.key_for(content_item))).to be_nil
 
-      content_item.save
       content_item.publish!
 
       expect($redis.get(Ublisherp::RedisKeys.key_for(content_item))).to eq(
@@ -46,14 +47,12 @@ describe Ublisherp do
     it 'adds something to the classes all sorted set when published' do
       expect(all_key_score).to be_nil
 
-      content_item.save
       content_item.publish!
       
       expect(all_key_score).to_not be_nil
     end
 
     it 'removes an item from redis when it is unpublished' do
-      content_item.save
       content_item.publish!
       content_item.unpublish!
 
@@ -61,7 +60,6 @@ describe Ublisherp do
     end
 
     it 'removes something to the classes all sorted set when unpublished' do
-      content_item.save
       content_item.publish!
       content_item.unpublish!
 
@@ -69,7 +67,6 @@ describe Ublisherp do
     end
 
     it 'adds an unpublished key to the gone_keys set' do
-      content_item.save
       content_item.publish!
       content_item.unpublish!
 
@@ -123,7 +120,6 @@ describe Ublisherp do
     end
 
     it 'adds each stream to the "in_streams" set for each item' do
-      stream_set_key = Ublisherp::RedisKeys.key_for_streams_set(content_item)
       content_item.tags << tag
       content_item.save
 

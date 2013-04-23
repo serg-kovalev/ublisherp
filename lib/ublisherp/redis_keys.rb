@@ -1,8 +1,7 @@
 module Ublisherp::RedisKeys
 
   def self.key_for(obj)
-    # TODO: fix tests so this is ok
-    # raise ArgumentError, "Given object doesn't have an id yet" if obj.id.blank?
+    raise(ArgumentError, "Given object doesn't have an id yet") if obj.id.blank?
     "#{obj.class.name}:#{obj.id}"
   end
 
