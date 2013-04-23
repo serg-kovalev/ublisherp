@@ -95,7 +95,8 @@ describe Ublisherp do
       content_item.unpublish!
     end
 
-    it 'also publishes associated objects declared with publishes_associations' do
+    it 'also publishes associated objects 
+        declared with publishes_associations' do
       tag.save
       content_item.tags << tag
       content_item.save
