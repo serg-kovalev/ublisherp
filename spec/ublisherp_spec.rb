@@ -122,6 +122,23 @@ describe Ublisherp do
       expect($redis.zcard(wrong_stream_key)).to eq(0)
     end
 
+    it 'adds each stream to the "in_streams" set for each item' do
+      stream_set_key = Ublisherp::RedisKeys.key_for_streams_set(content_item)
+      content_item.tags << tag
+      content_item.save
+
+      stream_set_key = Ublisherp::RedisKeys.key_for_streams_set(content_item)
+
+      expect($redis.scard(stream_set_key)).to eq(0)
+
+      tag.save
+      content_item.publish!
+
+      stream_key = Ublisherp::RedisKeys.key_for_stream_of(tag, :all)
+
+      expect($redis.smembers(stream_set_key)).to eq([stream_key])
+    end
+
   end
 end
 
