@@ -16,10 +16,9 @@ class Ublisherp::Publisher
 
       publish_associations
 
-      if respond_to?(:before_publish_commit!)
-        before_publish_commit!(**options)
-      end
+      callback_if_present :before_publish_commit!, **options
     end
+    callback_if_present :after_publish!, **options
   end
 
   def unpublish!(**options)
@@ -29,13 +28,16 @@ class Ublisherp::Publisher
                            publishable_key
       Ublisherp.redis.sadd RedisKeys.gone, publishable_key
 
-      if respond_to?(:before_unpublish_commit!)
-        before_unpublish_commit!(**options)
-      end
+      callback_if_present :before_unpublish_commit!, **options
     end
+    callback_if_present :after_unpublish!, **options
   end
 
   private
+  
+  def callback_if_present(callback, **options)
+    send(callback, **options) if respond_to?(callback)
+  end
 
   def publish_associations
     publishable.class.publish_associations.each do |association|
@@ -59,3 +61,4 @@ class Ublisherp::Publisher
   end
 
 end
+

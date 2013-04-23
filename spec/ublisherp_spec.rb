@@ -78,13 +78,23 @@ describe Ublisherp do
         Ublisherp::RedisKeys.key_for(content_item))).to be_true
     end
 
-    it 'runs callbacks on publish' do
+    it 'runs before callbacks on publish' do
       content_item.publisher.should_receive(:before_publish_commit!)
       content_item.publish!
     end
 
-    it 'runs callbacks on unpublish' do
+    it 'runs after callbacks on publish' do
+      content_item.publisher.should_receive(:after_publish!)
+      content_item.publish!
+    end
+
+    it 'runs before callbacks on unpublish' do
       content_item.publisher.should_receive(:before_unpublish_commit!)
+      content_item.unpublish!
+    end
+
+    it 'runs after callbacks on unpublish' do
+      content_item.publisher.should_receive(:after_unpublish!)
       content_item.unpublish!
     end
 
