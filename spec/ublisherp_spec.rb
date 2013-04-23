@@ -106,6 +106,22 @@ describe Ublisherp do
 
       expect($redis.get(Ublisherp::RedisKeys.key_for(tag))).to_not be_nil
     end
+
+    it 'publishes a content item to a tag stream' do
+      tag.save
+      content_item.tags << tag
+      content_item.save
+      content_item.publish!
+
+      stream_key = Ublisherp::RedisKeys.key_for_stream_of(tag, :all)
+      wrong_stream_key = Ublisherp::RedisKeys.key_for_stream_of(content_item,
+                                                                :all)
+      content_key = Ublisherp::RedisKeys.key_for(content_item)
+
+      expect($redis.zrange(stream_key, 0, -1)).to eq([content_key])
+      expect($redis.zcard(wrong_stream_key)).to eq(0)
+    end
+
   end
 end
 

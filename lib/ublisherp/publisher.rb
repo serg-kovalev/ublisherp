@@ -15,6 +15,7 @@ class Ublisherp::Publisher
                            publishable_key
 
       publish_associations
+      publish_streams **options
 
       callback_if_present :before_publish_commit!, **options
     end
@@ -43,6 +44,24 @@ class Ublisherp::Publisher
     publishable.class.publish_associations.each do |association|
       publishable.send(association).find_each(batch_size: 1000) do |instance|
         instance.publish!(publishable_name => publishable)
+      end
+    end
+  end
+
+  def publish_streams(**assocs)
+    publishable.class.publish_streams.each do |stream|
+      stream_key = RedisKeys.key_for_stream_of(publishable, stream[:name])
+      stream_assocs = if stream[:associations].nil?
+                        assocs.keys
+                      else
+                        stream[:associations] & assocs.keys
+                      end
+      stream_assocs.each do |sa|
+        stream_obj = assocs[sa]
+        next if (stream[:if] && !stream[:if].call(stream_obj)) ||
+                (stream[:unless] && stream[:unless].call(stream_obj))
+        Ublisherp.redis.zadd stream_key, time_in_ms,
+                             RedisKeys.key_for(stream_obj)
       end
     end
   end

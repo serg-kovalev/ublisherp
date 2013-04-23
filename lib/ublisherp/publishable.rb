@@ -9,6 +9,15 @@ module Ublisherp::Publishable
       @publish_associations.concat Array.new(assocs || [])
       @publish_associations
     end
+
+    def publish_stream(name: :all, **options)
+      @publish_streams ||= []
+
+      @publish_streams << options.merge(name: name)
+      @publish_streams.uniq!
+    end
+
+    def publish_streams; @publish_streams || []; end
   end
 
   def publisher
