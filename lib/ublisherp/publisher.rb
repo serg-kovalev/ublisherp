@@ -23,27 +23,19 @@ class Ublisherp::Publisher
   end
 
   def unpublish!(**options)
+    streams = association_streams_to_unpublish
+
     Ublisherp.redis.multi do
       Ublisherp.redis.del  publishable_key
       Ublisherp.redis.zrem RedisKeys.key_for_all(publishable), 
                            publishable_key
       Ublisherp.redis.sadd RedisKeys.gone, publishable_key
 
-      unpublish_associations
+      unpublish_associations streams
 
       callback_if_present :before_unpublish_commit!, **options
     end
     callback_if_present :after_unpublish!, **options
-  end
-
-  def unpublish_association!(**assocs)
-    Ublisherp.redis.multi do
-      unpublish_from_streams **assocs
-
-      callback_if_present :before_unpublish_association_commit!, **assocs
-    end
-
-    callback_if_present :after_unpublish_association!, **assocs
   end
 
   private
@@ -66,9 +58,10 @@ class Ublisherp::Publisher
     end
   end
 
-  def unpublish_associations
-    each_publish_association do |assoc|
-      assoc.unpublish_association!(publishable_name => publishable)
+  def unpublish_associations(stream_keys)
+    stream_keys.each do |key|
+      Ublisherp.redis.zrem key, publishable_key
+      Ublisherp.redis.srem RedisKeys.key_for_streams_set(publishable), key
     end
   end
 
@@ -84,22 +77,20 @@ class Ublisherp::Publisher
         stream_obj = assocs[sa]
         next if (stream[:if] && !stream[:if].call(stream_obj)) ||
                 (stream[:unless] && stream[:unless].call(stream_obj))
-        Ublisherp.redis.zadd stream_key, time_in_ms,
+
+        Ublisherp.redis.zadd stream_key, 
+                             time_in_ms,
                              RedisKeys.key_for(stream_obj)
+
         Ublisherp.redis.sadd RedisKeys.key_for_streams_set(stream_obj),
                              stream_key
       end
     end
   end
 
-  def unpublish_from_streams(**assocs)
-    assocs.values.each do |assoc|
-      streams_set_key = RedisKeys.key_for_streams_set(assoc)
-      Ublisherp.redis.smembers(streams_set_key).each do |stream_key|
-        Ublisherp.redis.zrem stream_key, RedisKeys.key_for(assoc)
-        Ublisherp.redis.srem stream_set_key, stream_key
-      end
-    end
+  def association_streams_to_unpublish
+    streams_set_key = RedisKeys.key_for_streams_set publishable
+    Ublisherp.redis.smembers(streams_set_key)
   end
 
   def publishable_name

@@ -136,6 +136,22 @@ describe Ublisherp do
       expect($redis.smembers(stream_set_key)).to eq([stream_key])
     end
 
+    it 'unpublishes a content item from a tag stream 
+        and its "in streams" key' do
+      tag.save
+      content_item.tags << tag
+      content_item.save
+      content_item.publish!
+      content_item.unpublish!
+
+      stream_key = Ublisherp::RedisKeys.key_for_stream_of(tag, :all)
+      content_key = Ublisherp::RedisKeys.key_for(content_item)
+      stream_set_key = Ublisherp::RedisKeys.key_for_streams_set(content_item)
+      
+      expect($redis.zrange(stream_key, 0, -1)).to eq([])
+      expect($redis.scard(stream_set_key)).to eq(0)
+    end
+
   end
 end
 
