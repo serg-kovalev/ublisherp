@@ -23,7 +23,7 @@ RSpec.configure do |config|
       database: ":memory:"
     )
 
-    require 'migrate'
+    load './spec/migrate.rb'
   end
 
   config.before :each do

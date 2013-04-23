@@ -31,7 +31,7 @@ class Ublisherp::Publisher
                            publishable_key
       Ublisherp.redis.sadd RedisKeys.gone, publishable_key
 
-      unpublish_associations streams
+      unpublish_streams streams
 
       callback_if_present :before_unpublish_commit!, **options
     end
@@ -58,7 +58,7 @@ class Ublisherp::Publisher
     end
   end
 
-  def unpublish_associations(stream_keys)
+  def unpublish_streams(stream_keys)
     stream_keys.each do |key|
       Ublisherp.redis.zrem key, publishable_key
       Ublisherp.redis.srem RedisKeys.key_for_streams_set(publishable), key

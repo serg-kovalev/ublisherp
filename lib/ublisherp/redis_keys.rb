@@ -1,8 +1,15 @@
 module Ublisherp::RedisKeys
 
-  def self.key_for(obj)
-    raise(ArgumentError, "Given object doesn't have an id yet") if obj.id.blank?
-    "#{obj.class.name}:#{obj.id}"
+  def self.key_for(obj, id: nil)
+    if !id # We are working out the key from an instance of an object
+      raise(ArgumentError, "Object doesn't have an id yet") if obj.id.blank?
+      id = obj.id
+      klass = obj.class.name
+    else
+      klass = obj.name
+    end
+
+    "#{klass}:#{id}"
   end
 
   def self.key_for_all(obj)
