@@ -9,6 +9,11 @@ describe Ublisherp::Model do
     ci
   end
 
+  it 'returns nil if a record is not found' do
+    sci = SimpleContentItem.find(19827361982736)
+    expect(sci).to be_nil
+  end
+
   it 'finds a single entity via ID' do
     ci = create_and_store_content_item
 
