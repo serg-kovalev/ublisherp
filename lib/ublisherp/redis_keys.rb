@@ -6,7 +6,7 @@ module Ublisherp::RedisKeys
       id = obj.id
       klass = obj.class.name
     else
-      klass = obj.name
+      klass = obj.model_name
     end
 
     "#{klass}:#{id}"

@@ -1,5 +1,8 @@
+ActiveRecord::Migration.verbose = false
 class CreateSchema < ActiveRecord::Migration
-  create_table :content_items
+  create_table :content_items do |t|
+    t.timestamps
+  end
 
   create_table :tags do |t|
     t.string :name

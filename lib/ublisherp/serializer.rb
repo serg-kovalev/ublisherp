@@ -4,10 +4,10 @@ module Ublisherp::Serializer
   end
 
   def self.dump(obj)
-    MultiJson.dump obj
+    MultiJson.dump obj, options
   end
 
   def self.load(obj)
-    MultiJson.load obj
+    MultiJson.load obj, options
   end
 end
