@@ -1,11 +1,19 @@
 class Ublisherp::Model < OpenStruct
   include Ublisherp
 
-  def self.model_name(name=nil)
-    @@model_name = name if name
-    @@model_name || self.name
+  def self.published_type(name=nil)
+    if name
+      @published_type = name
+      @@published_types ||= {}
+      @@published_types[@published_type] = self
+    end
+    @published_type || self.name.underscore
   end
-  
+
+  def self.published_types
+    @@published_types
+  end
+
   def self.find(id)
     data = Ublisherp.redis.get RedisKeys.key_for(self, id: id) 
     deserialize(data) if data
@@ -13,11 +21,23 @@ class Ublisherp::Model < OpenStruct
 
   def self.deserialize(data)
     ruby_data = Ublisherp::Serializer.load(data)
-    object_attrs = ruby_data[self.model_name.underscore.to_sym]
-    self.new(object_attrs)
+    raise "Only one object should be in serialized blob" if ruby_data.size != 1
+
+    type_name = ruby_data.keys.first
+    model_class =
+      published_types[type_name.to_sym] || type_name.to_s.camelize.constantize
+
+    object_attrs = ruby_data.values.first
+    object_attrs.keys.grep(/_(at|on)\z/).each do |key|
+      object_attrs[key] = Time.parse(object_attrs[key])
+    end
+
+    model_class.new(object_attrs)
   end
 
   def inspect
     "<#{self.class.name} id='#{id}'>"
   end
+
+  alias :attributes :to_h
 end

@@ -1,3 +1,3 @@
 class SimpleContentItem < Ublisherp::Model
-  model_name 'ContentItem'
+  published_type :content_item
 end

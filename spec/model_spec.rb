@@ -16,9 +16,10 @@ describe Ublisherp::Model do
 
   it 'finds a single entity via ID' do
     ci = create_and_store_content_item
+    ci.save
 
     sci = SimpleContentItem.find(ci.id)
-    expect(sci.id).to eq(ci.id)
+    expect(sci.attributes.symbolize_keys).to eq(ci.attributes.symbolize_keys)
   end
 
 end

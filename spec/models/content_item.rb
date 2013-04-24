@@ -3,4 +3,5 @@ class ContentItem < ActiveRecord::Base
 
   has_and_belongs_to_many :tags
   publish_associations :tags
+
 end
