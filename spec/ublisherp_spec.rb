@@ -40,8 +40,10 @@ describe Ublisherp do
 
       content_item.publish!
 
-      expect($redis.get(Ublisherp::RedisKeys.key_for(content_item))).to eq(
-        content_item.to_publishable)
+      expect(
+        $redis.get(Ublisherp::RedisKeys.key_for(content_item))).to eq(
+        Ublisherp::Serializer.dump(content_item)
+      )
     end
 
     it 'adds something to the classes all sorted set when published' do

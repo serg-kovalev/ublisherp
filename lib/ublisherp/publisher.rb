@@ -9,7 +9,7 @@ class Ublisherp::Publisher
 
   def publish!(**options)
     Ublisherp.redis.multi do
-      Ublisherp.redis.set  publishable_key, publishable.to_publishable
+      Ublisherp.redis.set  publishable_key, Serializer.dump(publishable)
       Ublisherp.redis.zadd RedisKeys.key_for_all(publishable), 
                            time_in_ms, 
                            publishable_key
