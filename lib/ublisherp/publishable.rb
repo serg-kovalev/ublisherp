@@ -18,6 +18,10 @@ module Ublisherp::Publishable
     end
 
     def publish_streams; @publish_streams || []; end
+
+    def published_type
+      self.name.underscore.to_sym
+    end
   end
 
   def publisher

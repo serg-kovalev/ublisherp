@@ -13,7 +13,8 @@ module Ublisherp::RedisKeys
   end
 
   def self.key_for_all(obj)
-    "#{obj.class.name.underscore}:all"
+    obj = obj.class unless Class === obj
+    "#{obj.published_type}:all"
   end
 
   def self.key_for_stream_of(obj, name, id: nil)

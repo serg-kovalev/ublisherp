@@ -39,4 +39,15 @@ describe Ublisherp::Model do
     expect(st.stream).to eq([sci2, sci])
     expect(st.stream(reverse: false)).to eq([sci, sci2])
   end
+
+  it 'returns all objects published' do
+    ci = create_and_store_content_item
+    ci2 = create_and_store_content_item
+
+    sci = SimpleContentItem.find(ci.id)
+    sci2 = SimpleContentItem.find(ci2.id)
+
+    expect(SimpleContentItem.all).to eq([sci2, sci])
+    expect(SimpleContentItem.all(reverse: false)).to eq([sci, sci2])
+  end
 end
