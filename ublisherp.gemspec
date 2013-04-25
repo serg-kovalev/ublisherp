@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency 'redis', '~> 3.0'
   s.add_runtime_dependency 'redis-namespace'
-  s.add_runtime_dependency 'activesupport', '~> 3.2'
+  s.add_runtime_dependency 'activesupport', '>= 3.2'
   s.add_runtime_dependency 'multi_json', '~> 1.0'
   s.add_runtime_dependency 'oj', '~> 2.0.11'
 

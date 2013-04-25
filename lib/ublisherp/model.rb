@@ -11,7 +11,7 @@ class Ublisherp::Model < OpenStruct
   end
 
   def self.published_types
-    @@published_types
+    @@published_types ||= {}
   end
 
   def self.find(id)
@@ -41,7 +41,6 @@ class Ublisherp::Model < OpenStruct
 
   def stream(name: :all, reverse: true, min: '-inf', max: '+inf', limit_count: 25)
     stream_key = RedisKeys.key_for_stream_of(self.class, name, id: id)
-    method = reverse ? :zrevrangebyscore : :zrangebyscore
     obj_keys = if reverse
                  Ublisherp.redis.zrevrangebyscore(stream_key, max, min,
                                                   limit: [0, limit_count])
@@ -56,6 +55,10 @@ class Ublisherp::Model < OpenStruct
     else
       []
     end
+  end
+
+  def as_json(opts={})
+    to_h
   end
 
   alias :attributes :to_h
