@@ -13,11 +13,11 @@ module Ublisherp::RedisKeys
   end
 
   def self.key_for_all(obj)
-    "#{obj.class.name}:all"
+    "#{obj.class.name.underscore}:all"
   end
 
-  def self.key_for_stream_of(obj, name)
-    "#{key_for(obj)}:streams:#{name}"
+  def self.key_for_stream_of(obj, name, id: nil)
+    "#{key_for(obj, id: id)}:streams:#{name}"
   end
 
   def self.key_for_streams_set(obj)

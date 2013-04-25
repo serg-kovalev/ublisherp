@@ -39,5 +39,24 @@ class Ublisherp::Model < OpenStruct
     "<#{self.class.name} id='#{id}'>"
   end
 
+  def stream(name: :all, reverse: true, min: '-inf', max: '+inf', limit_count: 25)
+    stream_key = RedisKeys.key_for_stream_of(self.class, name, id: id)
+    method = reverse ? :zrevrangebyscore : :zrangebyscore
+    obj_keys = if reverse
+                 Ublisherp.redis.zrevrangebyscore(stream_key, max, min,
+                                                  limit: [0, limit_count])
+               else
+                 Ublisherp.redis.zrangebyscore(stream_key, min, max,
+                                               limit: [0, limit_count])
+               end
+    if obj_keys.present?
+      Ublisherp.redis.mget(*obj_keys).tap do |objs|
+        objs.map! { |obj_json| self.class.deserialize(obj_json) }
+      end
+    else
+      []
+    end
+  end
+
   alias :attributes :to_h
 end

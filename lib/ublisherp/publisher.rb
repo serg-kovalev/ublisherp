@@ -103,7 +103,7 @@ class Ublisherp::Publisher
 
   def time_in_ms
     # Note that, this will only work in Ruby, as MySQL is not ms precise
-    (Time.now.to_f * 1000).to_i
+    Time.now.to_f
   end
 
 end
