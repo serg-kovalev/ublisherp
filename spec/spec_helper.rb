@@ -1,7 +1,12 @@
 require 'rubygems'
 require 'bundler/setup'
-Bundler.require :default, :test
+Bundler.require :default, :development
+
 require 'pry'
+require 'pry-debugger'
+require 'active_record'
+require 'rspec'
+require 'sqlite3'
 
 RSpec.configure do |config|
   # config.treat_symbols_as_metadata_keys_with_true_values = true

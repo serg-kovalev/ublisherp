@@ -1,0 +1,31 @@
+# -*- encoding: utf-8 -*-
+$:.push File.expand_path('../lib', __FILE__)
+# require 'omniauth/skype/version'
+
+Gem::Specification.new do |s|
+  root = File.dirname(__FILE__)
+
+  s.name     = 'ublisherp'
+  s.version  = '0.0.1'
+  s.authors  = ['Dan Brown', 'Alex Barlow']
+  s.email    = ['dan@madebymany.co.uk', 'alexb@madebymany.co.uk']
+  s.summary  = 'Publisher from ActiveRecord to Redis'
+  s.homepage = 'https://github.com/madebymany/ublisherp'
+
+  s.files         = Dir[File.join(root, 'lib/**/*.rb')]
+  s.test_files    = Dir[File.join(root, 'spec/**/*.rb')]
+  s.require_paths = ['lib']
+
+  s.add_runtime_dependency 'redis', '~> 3.0'
+  s.add_runtime_dependency 'redis-namespace'
+  s.add_runtime_dependency 'activesupport', '~> 3.2'
+  s.add_runtime_dependency 'multi_json', '~> 1.0'
+  s.add_runtime_dependency 'oj', '~> 2.0.11'
+
+  s.add_development_dependency 'bundler', '~> 1.3.5'
+  s.add_development_dependency 'rspec'
+  s.add_development_dependency 'sqlite3'
+  s.add_development_dependency 'pry'
+  s.add_development_dependency 'pry-debugger'
+  s.add_development_dependency 'activerecord',  '~> 3.2'
+end

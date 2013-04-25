@@ -1,6 +1,12 @@
 require 'bundler/setup'
 Bundler.require :default
 
+require 'redis'
+require 'redis-namespace'
+require 'multi_json'
+require 'oj'
+require 'active_support/all'
+
 module Ublisherp
 
   mattr_accessor :redis
