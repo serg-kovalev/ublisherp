@@ -47,14 +47,15 @@ class Ublisherp::Publisher
   def each_publish_association
     publishable.class.publish_associations.each do |association|
       publishable.send(association).find_each(batch_size: 1000) do |instance|
-        yield instance
+        yield association, instance
       end
     end
   end
 
   def publish_associations
-    each_publish_association do |assoc|
-      assoc.publish!(publishable_name => publishable)
+    each_publish_association do |assoc, instance|
+      instance.publish!(publishable_name => publishable)
+      # RedisKeys.key_for_associations(publishable, assoc)
     end
   end
 
