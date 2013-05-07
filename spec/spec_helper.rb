@@ -20,7 +20,10 @@ RSpec.configure do |config|
   config.order = 'random'
 
   config.before :all do
-    $redis = Redis.new(db: 15)
+    options = {db:15}
+    options[:logger] = Logger.new(STDOUT) if ENV['LOG'] == 'true'
+
+    $redis = Redis.new(options)
     Ublisherp.redis = $redis
 
     ActiveRecord::Base.establish_connection(
