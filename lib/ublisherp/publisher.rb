@@ -1,3 +1,4 @@
+require 'securerandom'
 class Ublisherp::Publisher
   include Ublisherp
 
@@ -8,33 +9,28 @@ class Ublisherp::Publisher
   end
 
   def publish!(**options)
-    Ublisherp.redis.multi do
-      Ublisherp.redis.set  publishable_key, Serializer.dump(publishable)
-      Ublisherp.redis.zadd RedisKeys.key_for_all(publishable), 
-                           time_in_ms, 
-                           publishable_key
+    # Pre calculate certain things, only reads here
+    # cache_key = cache_current_associations
 
-      publish_associations
-      publish_streams **options
+    Ublisherp.redis.set  publishable_key, Serializer.dump(publishable)
+    Ublisherp.redis.zadd RedisKeys.key_for_all(publishable), 
+                         time_in_ms, 
+                         publishable_key
+    
+    publish_associations
+    publish_streams **options
 
-      callback_if_present :before_publish_commit!, **options
-    end
     callback_if_present :after_publish!, **options
   end
 
   def unpublish!(**options)
-    streams = association_streams_to_unpublish
+    Ublisherp.redis.del  publishable_key
+    Ublisherp.redis.zrem RedisKeys.key_for_all(publishable), 
+                         publishable_key
+    Ublisherp.redis.sadd RedisKeys.gone, publishable_key
 
-    Ublisherp.redis.multi do
-      Ublisherp.redis.del  publishable_key
-      Ublisherp.redis.zrem RedisKeys.key_for_all(publishable), 
-                           publishable_key
-      Ublisherp.redis.sadd RedisKeys.gone, publishable_key
+    unpublish_streams
 
-      unpublish_streams streams
-
-      callback_if_present :before_unpublish_commit!, **options
-    end
     callback_if_present :after_unpublish!, **options
   end
 
@@ -42,6 +38,16 @@ class Ublisherp::Publisher
   
   def callback_if_present(callback, **options)
     send(callback, **options) if respond_to?(callback)
+  end
+
+
+  def cache_current_associations
+    members_count = Ublisherp.redis.scard assocations_key
+    if members_count == 0
+      return nil
+    else
+      hex = SecureRandom.hex
+    end
   end
 
   def each_publish_association
@@ -55,11 +61,12 @@ class Ublisherp::Publisher
   def publish_associations
     each_publish_association do |assoc, instance|
       instance.publish!(publishable_name => publishable)
-      # RedisKeys.key_for_associations(publishable, assoc)
+      Ublisherp.redis.sadd assocations_key, RedisKeys.key_for(instance)
     end
   end
 
-  def unpublish_streams(stream_keys)
+  def unpublish_streams
+    stream_keys = association_streams_to_unpublish
     stream_keys.each do |key|
       Ublisherp.redis.zrem key, publishable_key
       Ublisherp.redis.srem RedisKeys.key_for_streams_set(publishable), key
@@ -96,6 +103,10 @@ class Ublisherp::Publisher
 
   def publishable_name
     publishable.class.name.underscore.to_sym
+  end
+
+  def assocations_key
+    RedisKeys.key_for_associations(publishable)
   end
 
   def publishable_key

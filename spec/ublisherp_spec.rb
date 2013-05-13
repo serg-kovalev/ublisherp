@@ -77,19 +77,9 @@ describe Ublisherp do
         Ublisherp::RedisKeys.key_for(content_item))).to be_true
     end
 
-    it 'runs before callbacks on publish' do
-      content_item.publisher.should_receive(:before_publish_commit!)
-      content_item.publish!
-    end
-
     it 'runs after callbacks on publish' do
       content_item.publisher.should_receive(:after_publish!)
       content_item.publish!
-    end
-
-    it 'runs before callbacks on unpublish' do
-      content_item.publisher.should_receive(:before_unpublish_commit!)
-      content_item.unpublish!
     end
 
     it 'runs after callbacks on unpublish' do
@@ -152,6 +142,32 @@ describe Ublisherp do
       
       expect($redis.zrange(stream_key, 0, -1)).to eq([])
       expect($redis.scard(stream_set_key)).to eq(0)
+    end
+
+    it 'tracks associations and unpublishes itself from old ones' do
+      content_item.save
+      
+      t1 = Tag.new name: 'Tag 1'
+      t2 = Tag.new name: 'Tag 2'
+      
+      content_item.tags << t1
+      content_item.tags << t2
+      
+      content_item.publish!
+
+      stream_key =  Ublisherp::RedisKeys.key_for_stream_of(t1, :all)
+      stream_key1 = Ublisherp::RedisKeys.key_for_stream_of(t2, :all)
+
+      expect($redis.zcount(stream_key,  '-inf', '+inf')).to eq(1)
+      expect($redis.zcount(stream_key1, '-inf', '+inf')).to eq(1)
+      
+      content_item.tags = []
+      content_item.tags << t2
+      content_item.save
+      content_item.publish!
+
+      expect($redis.zcount(stream_key,  '-inf', '+inf')).to eq(0)
+      expect($redis.zcount(stream_key1, '-inf', '+inf')).to eq(1)
     end
 
   end

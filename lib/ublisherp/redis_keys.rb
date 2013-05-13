@@ -17,8 +17,8 @@ module Ublisherp::RedisKeys
     "#{obj.published_type}:all"
   end
 
-  def self.key_for_associations(obj, assoc, cache = nil)
-    "#{key_for(obj)}:associations:#{assoc}#{':' << cache if cache}"
+  def self.key_for_associations(obj, cache = nil)
+    "#{key_for(obj)}:associations#{':' << cache if cache}"
   end
 
   def self.key_for_stream_of(obj, name, id: nil)
