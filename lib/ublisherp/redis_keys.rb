@@ -1,6 +1,8 @@
 module Ublisherp::RedisKeys
 
   def self.key_for(obj, id: nil)
+    return obj if obj.is_a?(String)
+
     if id
       klass = obj.published_type
     else # We are working out the key from an instance of an object
@@ -17,8 +19,12 @@ module Ublisherp::RedisKeys
     "#{obj.published_type}:all"
   end
 
-  def self.key_for_associations(obj, assoc, cache = nil)
-    "#{key_for(obj)}:associations:#{assoc}#{':' << cache if cache}"
+  def self.key_for_associations(obj, assoc)
+    "#{key_for(obj)}:associations:#{assoc}"
+  end
+
+  def self.key_for_has_streams(obj)
+    "#{key_for(obj)}:has_streams"
   end
 
   def self.key_for_stream_of(obj, name, id: nil)
