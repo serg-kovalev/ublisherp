@@ -1,5 +1,5 @@
 class ContentItem < ActiveRecord::Base
-  include Ublisherp::Publishable
+  include Ublisherp::PublishableWithInstanceShortcuts
 
   has_and_belongs_to_many :tags
   publish_associations :tags

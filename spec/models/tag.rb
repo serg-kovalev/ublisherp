@@ -1,5 +1,5 @@
 class Tag < ActiveRecord::Base
-  include Ublisherp::Publishable
+  include Ublisherp::PublishableWithInstanceShortcuts
 
   has_and_belongs_to_many :content_items
 

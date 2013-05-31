@@ -1,7 +1,7 @@
 require 'securerandom'
 
 module Ublisherp::Publishable
-  extend  ActiveSupport::Concern
+  extend ActiveSupport::Concern
 
   module ClassMethods
     def publish_associations(*assocs)
@@ -33,16 +33,24 @@ module Ublisherp::Publishable
       end
   end
 
+  def as_publishable(opts = {})
+    as_json(opts)
+  end
+
+end
+
+module Ublisherp::PublishableWithInstanceShortcuts
+  extend ActiveSupport::Concern
+
+  include Ublisherp::Publishable
+
+
   def publish!(**options)
     publisher.publish!(**options)
   end
 
   def unpublish!(**options)
     publisher.unpublish!(**options)
-  end
-
-  def as_publishable(opts = {})
-    as_json(opts)
   end
 
 end
