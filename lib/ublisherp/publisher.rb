@@ -10,8 +10,8 @@ class Ublisherp::Publisher
   def publish!(**options)
     Ublisherp.redis.multi do
       Ublisherp.redis.set  publishable_key, Serializer.dump(publishable)
-      Ublisherp.redis.zadd RedisKeys.key_for_all(publishable), 
-                           time_in_ms, 
+      Ublisherp.redis.zadd RedisKeys.key_for_all(publishable),
+                           score_for(publishable), 
                            publishable_key
     end
 
@@ -92,7 +92,7 @@ class Ublisherp::Publisher
             (stream[:unless] && stream[:unless].call(stream_obj))
 
           Ublisherp.redis.zadd stream_key, 
-                               time_in_ms,
+                               score_for(stream_obj),
                                RedisKeys.key_for(stream_obj)
 
           Ublisherp.redis.sadd RedisKeys.key_for_streams_set(stream_obj),
@@ -132,9 +132,12 @@ class Ublisherp::Publisher
     RedisKeys.key_for(publishable)
   end
 
-  def time_in_ms
-    # Note that, this will only work in Ruby, as MySQL is not ms precise
-    Time.now.to_f
+  def score_for(obj)
+    if obj.respond_to?(:ublisherp_stream_score)
+      obj.ublisherp_stream_score
+    else
+      Time.now.to_f
+    end
   end
 
 end

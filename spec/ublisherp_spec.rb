@@ -175,6 +175,21 @@ describe Ublisherp do
       expect($redis.zcount(stream_key1, '-inf', '+inf')).to eq(1)
     end
 
+    it 'uses the given stream score if defined' do
+      tag.save!
+      content_item.tags << tag
+      content_item.save!
+
+      score_should = content_item.ublisherp_stream_score
+
+      content_item.publish!
+
+      stream_key = Ublisherp::RedisKeys.key_for_stream_of(tag, :all)
+      stream = $redis.zrangebyscore(stream_key, '-inf', '+inf', withscores: true)
+
+      expect(stream.first.last).to eq(score_should)
+    end
+
   end
 end
 
