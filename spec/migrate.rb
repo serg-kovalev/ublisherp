@@ -1,6 +1,12 @@
 ActiveRecord::Migration.verbose = false
 class CreateSchema < ActiveRecord::Migration
   create_table :content_items do |t|
+    t.integer :section_id
+    t.timestamps
+  end
+
+  create_table :sections do |t|
+    t.string :name
     t.timestamps
   end
 

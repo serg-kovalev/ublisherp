@@ -2,14 +2,16 @@ require 'spec_helper'
 
 describe Ublisherp do
 
+  let :section do
+    Section.create!(name: "A section")
+  end
+
   let :content_item do
-    ci = ContentItem.new
-    ci.save
-    ci
+    ContentItem.create!(section: section)
   end
 
   let :tag do
-    Tag.new
+    Tag.create!(name: "Cheese")
   end
 
   describe Ublisherp::Publishable do
@@ -94,89 +96,96 @@ describe Ublisherp do
 
     it 'also publishes associated objects 
         declared with publishes_associations' do
-      tag.save
       content_item.tags << tag
-      content_item.save
+      content_item.save!
       content_item.publish!
 
       expect($redis.get(Ublisherp::RedisKeys.key_for(tag))).to_not be_nil
+      expect($redis.get(Ublisherp::RedisKeys.key_for(section))).to_not be_nil
     end
 
     it 'publishes a content item to a tag stream' do
-      tag.save
       content_item.tags << tag
-      content_item.save
+      content_item.save!
       content_item.publish!
 
-      stream_key = Ublisherp::RedisKeys.key_for_stream_of(tag, :all)
       wrong_stream_key = Ublisherp::RedisKeys.key_for_stream_of(content_item,
                                                                 :all)
       content_key = Ublisherp::RedisKeys.key_for(content_item)
 
-      expect($redis.zrange(stream_key, 0, -1)).to eq([content_key])
-      expect($redis.zcard(wrong_stream_key)).to eq(0)
+      [tag, section].each do |o|
+        stream_key = Ublisherp::RedisKeys.key_for_stream_of(o, :all)
+
+        expect($redis.zrange(stream_key, 0, -1)).to eq([content_key])
+        expect($redis.zcard(wrong_stream_key)).to eq(0)
+      end
     end
 
     it 'adds each stream to the "in_streams" set for each item' do
       content_item.tags << tag
-      content_item.save
+      content_item.save!
 
       stream_set_key = Ublisherp::RedisKeys.key_for_streams_set(content_item)
 
       expect($redis.scard(stream_set_key)).to eq(0)
 
-      tag.save
       content_item.publish!
 
-      stream_key = Ublisherp::RedisKeys.key_for_stream_of(tag, :all)
+      stream_keys = [section, tag].map { |o|
+        Ublisherp::RedisKeys.key_for_stream_of(o, :all)
+      }
 
-      expect($redis.smembers(stream_set_key)).to eq([stream_key])
+      expect($redis.smembers(stream_set_key)).to match_array(stream_keys)
     end
 
     it 'unpublishes a content item from a tag stream 
         and its "in streams" key' do
-      tag.save
       content_item.tags << tag
-      content_item.save
+      content_item.save!
       content_item.publish!
       content_item.unpublish!
 
-      stream_key = Ublisherp::RedisKeys.key_for_stream_of(tag, :all)
       content_key = Ublisherp::RedisKeys.key_for(content_item)
       stream_set_key = Ublisherp::RedisKeys.key_for_streams_set(content_item)
       
-      expect($redis.zrange(stream_key, 0, -1)).to eq([])
-      expect($redis.scard(stream_set_key)).to eq(0)
+      [tag, section].each do |o|
+        stream_key = Ublisherp::RedisKeys.key_for_stream_of(tag, :all)
+        expect($redis.zrange(stream_key, 0, -1)).to eq([])
+        expect($redis.scard(stream_set_key)).to eq(0)
+      end
     end
 
     it 'tracks associations and unpublishes itself from old ones' do
-      content_item.save
 
       t1 = Tag.new name: 'Tag 1'
       t2 = Tag.new name: 'Tag 2'
 
       content_item.tags << t1
       content_item.tags << t2
+      content_item.save!
 
       content_item.publish!
 
-      stream_key =  Ublisherp::RedisKeys.key_for_stream_of(t1, :all)
-      stream_key1 = Ublisherp::RedisKeys.key_for_stream_of(t2, :all)
+      t1_stream_key =  Ublisherp::RedisKeys.key_for_stream_of(t1, :all)
+      t2_stream_key = Ublisherp::RedisKeys.key_for_stream_of(t2, :all)
+      section_stream_key = Ublisherp::RedisKeys.key_for_stream_of(section, :all)
 
-      expect($redis.zcount(stream_key,  '-inf', '+inf')).to eq(1)
-      expect($redis.zcount(stream_key1, '-inf', '+inf')).to eq(1)
+      expect($redis.zcount(t1_stream_key,  '-inf', '+inf')).to eq(1)
+      expect($redis.zcount(t2_stream_key, '-inf', '+inf')).to eq(1)
+      expect($redis.zcount(section_stream_key, '-inf', '+inf')).to eq(1)
 
       content_item.tags = []
       content_item.tags << t2
-      content_item.save
+      content_item.section = nil
+      content_item.save!
       content_item.publish!
 
-      expect($redis.zcount(stream_key,  '-inf', '+inf')).to eq(0)
-      expect($redis.zcount(stream_key1, '-inf', '+inf')).to eq(1)
+      expect($redis.zcount(t1_stream_key,  '-inf', '+inf')).to eq(0)
+      expect($redis.zcount(t2_stream_key, '-inf', '+inf')).to eq(1)
+      expect($redis.zcount(section_stream_key, '-inf', '+inf')).to eq(0)
     end
 
     it 'uses the given stream score if defined' do
-      tag.save!
       content_item.tags << tag
       content_item.save!
 

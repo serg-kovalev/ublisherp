@@ -46,26 +46,33 @@ class Ublisherp::Publisher
   end
 
   def publish_associations
-    publishable.class.publish_associations.each do |association|
+    publishable.class.publish_associations.each do |assoc_name|
       published_keys = Set.new(Ublisherp.redis.smembers(
-        RedisKeys.key_for_associations(publishable, association)))
+        RedisKeys.key_for_associations(publishable, assoc_name)))
 
-      publishable.send(association).find_each(batch_size: 1000) do |instance|
+      inner_block = proc do |instance|
         assoc_key = RedisKeys.key_for(instance)
 
         if published_keys.delete?(assoc_key).nil?
           instance.publish!(publishable_name => publishable)
           Ublisherp.redis.sadd(RedisKeys.key_for_associations(publishable,
-                                                              association),
+                                                              assoc_name),
                                RedisKeys.key_for(instance))
         end
+      end
+
+      assoc_objs = publishable.__send__(assoc_name)
+      if assoc_objs.respond_to?(:find_each)
+        assoc_objs.find_each(batch_size: 1000, &inner_block)
+      else
+        Array(assoc_objs).each(&inner_block)
       end
 
       # The keys left should be removed
       if published_keys.present?
         unpublish_from_streams_of_associations published_keys
         Ublisherp.redis.srem(RedisKeys.key_for_associations(publishable,
-                                                            association),
+                                                            assoc_name),
                              *published_keys.to_a)
       end
     end
