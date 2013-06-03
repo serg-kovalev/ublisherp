@@ -1,13 +1,11 @@
 module Ublisherp::Serializer
-  def self.options
-    { :symbolize_keys => true, :pretty => false, :adapter => :oj }
-  end
+  OPTIONS = { symbolize_keys: true, pretty: false }
 
   def self.dump(obj)
-    MultiJson.dump obj, options
+    MultiJson.dump obj, OPTIONS
   end
 
   def self.load(obj)
-    MultiJson.load obj, options
+    MultiJson.load obj, OPTIONS
   end
 end

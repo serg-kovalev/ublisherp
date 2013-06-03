@@ -7,6 +7,8 @@ require 'multi_json'
 require 'oj'
 require 'active_support/all'
 
+MultiJson.use :oj
+
 module Ublisherp
 
   mattr_accessor :redis
