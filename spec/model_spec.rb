@@ -9,9 +9,10 @@ describe Ublisherp::Model do
     ci
   end
 
-  it 'returns nil if a record is not found' do
-    sci = SimpleContentItem.find(19827361982736)
-    expect(sci).to be_nil
+  it 'raises an exception if a record is not found' do
+    expect {
+      SimpleContentItem.find(19827361982736)
+    }.to raise_error(Ublisherp::Model::RecordNotFound)
   end
 
   it 'finds a single entity via ID' do

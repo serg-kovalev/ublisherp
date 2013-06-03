@@ -1,6 +1,8 @@
 class Ublisherp::Model < OpenStruct
   include Ublisherp
 
+  class RecordNotFound < StandardError; end
+
   def self.published_type(name=nil)
     if name
       @published_type = name
@@ -16,7 +18,11 @@ class Ublisherp::Model < OpenStruct
 
   def self.find(id)
     data = Ublisherp.redis.get RedisKeys.key_for(self, id: id) 
-    deserialize(data) if data
+    if data
+      deserialize(data) if data
+    else
+      raise RecordNotFound, "#{self.name} not found with id #{id.inspect}"
+    end
   end
 
   def self.deserialize(data)
