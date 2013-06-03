@@ -19,7 +19,7 @@ class Ublisherp::Model < OpenStruct
   def self.find(id)
     data = Ublisherp.redis.get RedisKeys.key_for(self, id: id) 
     if data
-      deserialize(data) if data
+      deserialize(data)
     else
       raise RecordNotFound, "#{self.name} not found with id #{id.inspect}"
     end
