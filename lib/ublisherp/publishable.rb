@@ -3,12 +3,6 @@ require 'securerandom'
 module Ublisherp::Publishable
   extend ActiveSupport::Concern
 
-  included do
-    if self.respond_to?(:include_root_in_json=)
-      self.include_root_in_json = true
-    end
-  end
-
   module ClassMethods
     def publish_associations(*assocs)
       @publish_associations ||= []
@@ -39,7 +33,13 @@ module Ublisherp::Publishable
       end
   end
 
+  def publishable_json_options
+    {}
+  end
+
   def as_publishable(opts = {})
+    opts.symbolize_keys!.merge! root: true
+    opts.merge! publishable_json_options
     as_json(opts)
   end
 
