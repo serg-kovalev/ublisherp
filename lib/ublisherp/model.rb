@@ -35,6 +35,7 @@ class Ublisherp::Model < OpenStruct
 
     object_attrs = ruby_data.values.first
     object_attrs.keys.grep(/_(at|on)\z/).each do |key|
+      next if object_attrs[key].nil?
       object_attrs[key] = Time.parse(object_attrs[key])
     end
 
