@@ -54,7 +54,7 @@ class Ublisherp::Publisher
         assoc_key = RedisKeys.key_for(instance)
 
         if published_keys.delete?(assoc_key).nil?
-          instance.publish!(publishable_name => publishable)
+          instance.publisher.publish!(publishable_name => publishable)
           Ublisherp.redis.sadd(RedisKeys.key_for_associations(publishable,
                                                               assoc_name),
                                RedisKeys.key_for(instance))
