@@ -99,6 +99,10 @@ class Ublisherp::Publisher
           next if (stream[:if] && !stream[:if].call(stream_obj)) ||
             (stream[:unless] && stream[:unless].call(stream_obj))
 
+          stream_classes = Array(stream[:class])
+          next if stream_classes.present? &&
+                  !stream_classes.include?(stream_obj.class)
+
           Ublisherp.redis.zadd stream_key, 
                                score_for(stream_obj),
                                RedisKeys.key_for(stream_obj)
