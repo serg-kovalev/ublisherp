@@ -17,6 +17,12 @@ module Ublisherp::Publishable
       @publish_streams.uniq!
     end
 
+    def publish_stream_of_model(model_cls, **options)
+      options.merge! name: model_cls.model_name.plural.underscore.to_sym,
+                     class: model_cls
+      publish_stream **options
+    end
+
     def publish_streams; @publish_streams || []; end
 
     def published_type

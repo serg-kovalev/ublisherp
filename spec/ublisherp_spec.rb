@@ -133,7 +133,7 @@ describe Ublisherp do
 
       stream_keys = [section, tag].map { |o|
         Ublisherp::RedisKeys.key_for_stream_of(o, :all)
-      }
+      } << Ublisherp::RedisKeys.key_for_stream_of(section, :content_items)
 
       expect($redis.smembers(stream_set_key)).to match_array(stream_keys)
     end
