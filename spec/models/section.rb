@@ -1,3 +1,5 @@
+require File.expand_path('../content_item', __FILE__)
+
 class Section < ActiveRecord::Base
   include Ublisherp::PublishableWithInstanceShortcuts
 
