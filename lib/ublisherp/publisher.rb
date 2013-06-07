@@ -100,8 +100,9 @@ class Ublisherp::Publisher
             (stream[:unless] && stream[:unless].call(stream_obj))
 
           stream_classes = Array(stream[:class])
-          next if stream_classes.present? &&
-                  !stream_classes.include?(stream_obj.class)
+          if stream_classes.present?
+            next unless stream_classes.any? { |cls| cls === stream_obj }
+          end
 
           Ublisherp.redis.zadd stream_key, 
                                score_for(stream_obj),
