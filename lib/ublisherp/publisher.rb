@@ -147,7 +147,7 @@ class Ublisherp::Publisher
 
   def score_for(obj)
     if obj.respond_to?(:ublisherp_stream_score)
-      obj.ublisherp_stream_score
+      obj.ublisherp_stream_score.to_f
     else
       Time.now.to_f
     end
