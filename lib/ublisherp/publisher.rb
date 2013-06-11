@@ -53,12 +53,11 @@ class Ublisherp::Publisher
       inner_block = proc do |instance|
         assoc_key = RedisKeys.key_for(instance)
 
-        if published_keys.delete?(assoc_key).nil?
-          instance.publisher.publish!(publishable_name => publishable)
-          Ublisherp.redis.sadd(RedisKeys.key_for_associations(publishable,
-                                                              assoc_name),
-                               RedisKeys.key_for(instance))
-        end
+        published_keys.delete assoc_key
+        instance.publisher.publish!(publishable_name => publishable)
+        Ublisherp.redis.sadd(RedisKeys.key_for_associations(publishable,
+                                                            assoc_name),
+                                                            RedisKeys.key_for(instance))
       end
 
       assoc_objs = publishable.__send__(assoc_name)
