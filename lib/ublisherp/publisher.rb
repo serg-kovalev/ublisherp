@@ -18,12 +18,14 @@ class Ublisherp::Publisher
 
     publish_associations
     publish_streams **options
+    publish_indexes
 
     callback_if_present :after_publish!, **options
   end
 
   def unpublish!(**options)
     streams = association_streams_to_unpublish
+    indexes = publishable_current_indexes
 
     Ublisherp.redis.multi do
       Ublisherp.redis.del  publishable_key
@@ -32,6 +34,7 @@ class Ublisherp::Publisher
       Ublisherp.redis.sadd RedisKeys.gone, publishable_key
 
       unpublish_streams streams
+      unpublish_indexes indexes
 
       callback_if_present :before_unpublish_commit!, **options
     end
@@ -128,6 +131,29 @@ class Ublisherp::Publisher
           Ublisherp.redis.zrem stream_key, publishable_key
         end
       end
+    end
+  end
+
+  def publishable_current_indexes
+    Ublisherp.redis.smembers(RedisKeys.key_for_in_indexes(publishable))
+  end
+
+  def publish_indexes
+    current_indexes = publishable_current_indexes
+
+    Ublisherp.redis.multi do
+      unpublish_indexes current_indexes
+      publishable.class.publish_indexes.each do |index_attr|
+        index_key = RedisKeys.key_for_index(publishable, index_attr)
+        Ublisherp.redis.sadd index_key, publishable_key
+        Ublisherp.redis.sadd RedisKeys.key_for_in_indexes(publishable), index_key
+      end
+    end
+  end
+
+  def unpublish_indexes(indexes)
+    indexes.each do |i|
+      Ublisherp.redis.srem i, publishable_key
     end
   end
 

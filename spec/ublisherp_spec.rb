@@ -199,6 +199,28 @@ describe Ublisherp do
       expect(stream.first.last).to eq(score_should)
     end
 
+    it 'indexes a content item by its slug' do
+      content_item.slug = 'a-crazy-badger'
+      content_item.save!
+      content_item.publish!
+      content_item_key = Ublisherp::RedisKeys.key_for(content_item)
+
+      index_key1 = Ublisherp::RedisKeys.key_for_index(content_item, :slug)
+      expect($redis.smembers(index_key1)).to match_array([content_item_key])
+
+      content_item.slug = 'a-hungry-snake'
+      content_item.save!
+      index_key2 = Ublisherp::RedisKeys.key_for_index(content_item, :slug)
+      content_item.publish!
+
+      expect($redis.smembers(index_key1)).to match_array([])
+      expect($redis.smembers(index_key2)).to match_array([content_item_key])
+
+      content_item.unpublish!
+      expect($redis.smembers(index_key1)).to eq([])
+      expect($redis.smembers(index_key2)).to eq([])
+    end
+
   end
 end
 

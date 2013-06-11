@@ -1,17 +1,21 @@
 module Ublisherp::RedisKeys
 
+  def self.class_name_for(obj, id: nil)
+    if obj.respond_to?(:published_type)
+      obj.published_type
+    else # We are working out the key from an instance of an object
+      obj.class.name.underscore
+    end
+  end
+
   def self.key_for(obj, id: nil)
     return obj if obj.is_a?(String)
 
-    if id
-      klass = obj.published_type
-    else # We are working out the key from an instance of an object
-      raise(ArgumentError, "Object doesn't have an id yet") if obj.id.blank?
-      id = obj.id
-      klass = obj.class.name.underscore
+    if id.nil? && obj.id.blank?
+      raise ArgumentError, "Object doesn't have an id yet"
     end
 
-    "#{klass}:#{id}"
+    "#{class_name_for(obj, id: id)}:#{id || obj.id}"
   end
 
   def self.key_for_all(obj)
@@ -33,6 +37,14 @@ module Ublisherp::RedisKeys
 
   def self.key_for_streams_set(obj)
     "#{key_for(obj)}:in_streams"
+  end
+
+  def self.key_for_index(obj, index, value = nil)
+    "#{class_name_for(obj)}:index:#{index}:#{value || obj.__send__(index)}"
+  end
+
+  def self.key_for_in_indexes(obj)
+    "#{key_for(obj)}:in_indexes"
   end
 
   def self.gone

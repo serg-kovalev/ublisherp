@@ -25,6 +25,11 @@ module Ublisherp::Publishable
 
     def publish_streams; @publish_streams || []; end
 
+    def publish_indexes(*attrs)
+      @publish_index_attrs ||= Set.new
+      @publish_index_attrs.merge attrs
+    end
+
     def published_type
       self.name.underscore.to_sym
     end

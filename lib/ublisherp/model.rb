@@ -27,7 +27,19 @@ class Ublisherp::Model < OpenStruct
     end
 
     def find(id)
-      data = Ublisherp.redis.get RedisKeys.key_for(self, id: id) 
+      data_key = if id.is_a?(Hash)
+                   if id.size != 1
+                     raise NotImplementedError,
+                       "find can only have one index condition for now"
+                   end
+
+                   Ublisherp.redis.srandmember(
+                     RedisKeys.key_for_index(self, id.keys.first,
+                                             id.values.first))
+                 else
+                   RedisKeys.key_for(self, id: id)
+                 end
+      data = Ublisherp.redis.get(data_key)
       if data
         deserialize(data)
       else

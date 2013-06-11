@@ -2,9 +2,9 @@ require 'spec_helper'
 
 describe Ublisherp::Model do
   
-  def create_and_store_content_item
-    ci = ContentItem.new
-    ci.save
+  def create_and_store_content_item(**options)
+    ci = ContentItem.new(**options)
+    ci.save!
     ci.publish!
     ci
   end
@@ -50,5 +50,20 @@ describe Ublisherp::Model do
 
     expect(SimpleContentItem.all).to eq([sci2, sci])
     expect(SimpleContentItem.all(reverse: false)).to eq([sci, sci2])
+  end
+
+  it 'can retrieve a content item by indexed attribute' do
+    ci = create_and_store_content_item(slug: 'a-crazy-badger')
+    sci = SimpleContentItem.find(ci.id)
+
+    expect(SimpleContentItem.find(slug: 'a-crazy-badger')).to eq(sci)
+
+    expect {
+      SimpleContentItem.find(slug: 'qwer')
+    }.to raise_error(Ublisherp::Model::RecordNotFound)
+
+    expect {
+      SimpleContentItem.find(slug: 'qwer', asdf: 'erty')
+    }.to raise_error(NotImplementedError)
   end
 end
