@@ -1,9 +1,11 @@
 require 'active_model/naming'
+require 'active_model/conversion'
 
 class Ublisherp::Model < OpenStruct
   include Ublisherp
 
   extend ActiveModel::Naming
+  include ActiveModel::Conversion
 
   class RecordNotFound < StandardError; end
 
