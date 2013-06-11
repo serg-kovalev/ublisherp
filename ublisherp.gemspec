@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path('../lib', __FILE__)
-# require 'omniauth/skype/version'
 
 Gem::Specification.new do |s|
   root = File.dirname(__FILE__)
@@ -19,6 +18,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'redis', '~> 3.0'
   s.add_runtime_dependency 'redis-namespace'
   s.add_runtime_dependency 'activesupport', '>= 3.2'
+  s.add_runtime_dependency 'activemodel', '>= 3.2', '< 5'
   s.add_runtime_dependency 'multi_json', '~> 1.0'
   s.add_runtime_dependency 'oj', '~> 2.0.11'
 
