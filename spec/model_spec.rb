@@ -42,8 +42,8 @@ describe Ublisherp::Model do
   end
 
   it 'returns all objects published' do
-    ci = create_and_store_content_item
-    ci2 = create_and_store_content_item
+    ci = create_and_store_content_item(stream_at: Time.now - 60)
+    ci2 = create_and_store_content_item(stream_at: Time.now)
 
     sci = SimpleContentItem.find(ci.id)
     sci2 = SimpleContentItem.find(ci2.id)
