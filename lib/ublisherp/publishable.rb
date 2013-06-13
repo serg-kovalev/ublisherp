@@ -54,6 +54,26 @@ module Ublisherp::Publishable
     as_json(opts)
   end
 
+  def as_publishable_with_associations(opts = {})
+    as_publishable(opts).tap do |p|
+      p = p[p.keys.first] # get root hash
+      assocs = self.class.reflect_on_all_associations.select { |a|
+        self.class.publish_associations.include? a.name
+      }
+      assocs.each do |a|
+        case a.macro
+        when :belongs_to
+          o = self.__send__(a.name)
+          p[:"#{a.name}_id"] = Ublisherp::RedisKeys.key_for(o) if o
+        when :has_many, :has_and_belongs_to_many
+          p[:"#{a.name}_ids"] = self.__send__(a.name).map { |i|
+            Ublisherp::RedisKeys.key_for(i) if i
+          }
+        end
+      end
+    end
+  end
+
 end
 
 module Ublisherp::PublishableWithInstanceShortcuts

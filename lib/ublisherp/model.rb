@@ -1,3 +1,5 @@
+require 'set'
+
 require 'active_model/naming'
 require 'active_model/conversion'
 
@@ -39,11 +41,17 @@ class Ublisherp::Model < OpenStruct
                  else
                    RedisKeys.key_for(self, id: id)
                  end
-      data = Ublisherp.redis.get(data_key)
+      get data_key
+    rescue RecordNotFound
+      raise RecordNotFound, "#{self.name} not found with id #{id.inspect}"
+    end
+
+    def get(key)
+      data = Ublisherp.redis.get(key)
       if data
         deserialize(data)
       else
-        raise RecordNotFound, "#{self.name} not found with id #{id.inspect}"
+        raise RecordNotFound, "#{self.name} not found with key #{key}"
       end
     end
 
@@ -59,6 +67,17 @@ class Ublisherp::Model < OpenStruct
       object_attrs.keys.grep(/_(at|on)\z/).each do |key|
         next if object_attrs[key].nil?
         object_attrs[key] = Time.parse(object_attrs[key])
+      end
+
+      model_class.belongs_to.each do |attr|
+        key = object_attrs[:"#{attr}_id"]
+        object_attrs[attr] = key && get(key)
+      end
+
+      model_class.has_many.each do |attr|
+        object_attrs[attr] = object_attrs[:"#{attr}_ids"].map { |key|
+          get key
+        }
       end
 
       model_class.new(object_attrs)
@@ -87,6 +106,13 @@ class Ublisherp::Model < OpenStruct
       end
     end
 
+    def belongs_to(*attrs)
+      (@belongs_to_attrs ||= Set.new).merge attrs
+    end
+
+    def has_many(*attrs)
+      (@has_many_attrs ||= Set.new).merge attrs
+    end
   end
 
   def inspect

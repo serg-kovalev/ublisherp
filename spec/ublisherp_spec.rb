@@ -44,7 +44,7 @@ describe Ublisherp do
 
       expect(
         $redis.get(Ublisherp::RedisKeys.key_for(content_item))).to eq(
-        Ublisherp::Serializer.dump(content_item)
+        Ublisherp::Serializer.dump(content_item.as_publishable_with_associations)
       )
     end
 

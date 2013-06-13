@@ -19,12 +19,13 @@ describe Ublisherp::Model do
     ci = create_and_store_content_item
 
     sci = SimpleContentItem.find(ci.id)
-    expect(sci.attributes.symbolize_keys).to eq(ci.attributes.symbolize_keys)
+    expect(sci.attributes.symbolize_keys).to \
+      eq(ci.attributes.symbolize_keys.merge(section: nil, tags: [], tags_ids: []))
   end
 
   it 'returns a stream of objects' do
-    ci = create_and_store_content_item
-    ci2 = create_and_store_content_item
+    ci = create_and_store_content_item(stream_at: Time.now - 60)
+    ci2 = create_and_store_content_item(stream_at: Time.now)
     tag = Tag.new(name: 'cheese')
     tag.save
     [ci, ci2].each do |c|
@@ -95,5 +96,20 @@ describe Ublisherp::Model do
     sci = SimpleContentItem.find(ci.id)
 
     expect(sci.respond_to?(:stream)).to be_true
+  end
+
+  it "is associated with another Model object" do
+    section_name = "Blah"
+    tag_names = ['cheese', 'badgers']
+    ci = create_and_store_content_item(section:
+                                         Section.create!(name: section_name),
+                                       tags: tag_names.map { |n|
+                                         Tag.create! name: n
+                                       })
+    sci = SimpleContentItem.find(ci.id)
+
+    expect(sci.section).to be_a(Ublisherp::Model)
+    expect(sci.section.name).to eq(section_name)
+    expect(sci.tags.map(&:name)).to match_array(tag_names)
   end
 end
