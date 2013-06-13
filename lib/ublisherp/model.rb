@@ -104,4 +104,17 @@ class Ublisherp::Model < OpenStruct
   end
 
   alias :attributes :to_h
+
+  def method_missing(name, *args, &block)
+    unless to_h.keys.include?(name.to_sym)
+      raise NoMethodError,
+        "undefined method `#{name}' for #{self.inspect}:#{self.class.name}"
+    end
+
+    super
+  end
+
+  def respond_to?(name)
+    to_h.keys.include?(name.to_sym)
+  end
 end

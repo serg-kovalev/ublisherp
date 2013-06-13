@@ -66,4 +66,20 @@ describe Ublisherp::Model do
       SimpleContentItem.find(slug: 'qwer', asdf: 'erty')
     }.to raise_error(NotImplementedError)
   end
+
+  it 'raises an error for unknown methods' do
+    ci = create_and_store_content_item
+    sci = SimpleContentItem.find(ci.id)
+
+    expect {
+      sci.asdfasdfwqerqwer
+    }.to raise_error(NoMethodError)
+  end
+
+  it "doesn't claim it responds to methods it doesn't have a hash key for" do
+    ci = create_and_store_content_item
+    sci = SimpleContentItem.find(ci.id)
+
+    expect(sci.respond_to?(:qsdfasdfasdf)).to be_false
+  end
 end
