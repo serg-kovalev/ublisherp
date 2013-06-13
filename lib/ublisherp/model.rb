@@ -113,8 +113,4 @@ class Ublisherp::Model < OpenStruct
 
     super
   end
-
-  def respond_to?(name)
-    to_h.keys.include?(name.to_sym)
-  end
 end

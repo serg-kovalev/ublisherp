@@ -82,4 +82,18 @@ describe Ublisherp::Model do
 
     expect(sci.respond_to?(:qsdfasdfasdf)).to be_false
   end
+
+  it "claims it responds to methods that are part of the struct" do
+    ci = create_and_store_content_item
+    sci = SimpleContentItem.find(ci.id)
+
+    expect(sci.respond_to?(:slug)).to be_true
+  end
+
+  it "claims it responds to methods that are defined, but not part of the struct" do
+    ci = create_and_store_content_item
+    sci = SimpleContentItem.find(ci.id)
+
+    expect(sci.respond_to?(:stream)).to be_true
+  end
 end
