@@ -11,6 +11,8 @@ class Ublisherp::Model < OpenStruct
 
   class RecordNotFound < StandardError; end
 
+  DEFAULT_LIMIT_COUNT = 25
+
   class << self
 
     include Ublisherp
@@ -49,13 +51,16 @@ class Ublisherp::Model < OpenStruct
     def get(key)
       data = Ublisherp.redis.get(key)
       if data
-        deserialize(data)
+        deserialize(data, key: key)
       else
         raise RecordNotFound, "#{self.name} not found with key #{key}"
       end
     end
 
-    def deserialize(data)
+    def deserialize(data, **extra)
+      raise ArgumentError, "no key supplied" unless extra[:key]
+      extra[:score] ||= nil
+
       ruby_data = Ublisherp::Serializer.load(data)
       raise "Only one object should be in serialized blob" if ruby_data.size != 1
 
@@ -80,6 +85,7 @@ class Ublisherp::Model < OpenStruct
         }
       end
 
+      object_attrs.merge! extra
       model_class.new(object_attrs)
     end
 
@@ -89,18 +95,41 @@ class Ublisherp::Model < OpenStruct
 
     alias_method :to_a, :all
 
-    def get_sorted_set(key, reverse: true, min: '-inf', max: '+inf', limit_count: 25)
+    def get_sorted_set(key, reverse: true, min: '-inf', max: '+inf',
+                       limit_count: DEFAULT_LIMIT_COUNT, page: nil,
+                       last_key: nil)
+
+      adj_limit_count = limit_count
+      adj_limit_count += 1 if last_key
+      min_limit = if page
+                    (page - 1) * limit_count
+                  else
+                    0
+                  end
       obj_keys = if reverse
                    Ublisherp.redis.zrevrangebyscore(key, max, min,
-                                                    limit: [0, limit_count])
+                                                    limit: [min_limit,
+                                                            adj_limit_count],
+                                                    withscores: true)
                  else
                    Ublisherp.redis.zrangebyscore(key, min, max,
-                                                 limit: [0, limit_count])
+                                                 limit: [min_limit,
+                                                         adj_limit_count],
+                                                 withscores: true)
                  end
       if obj_keys.present?
-        Ublisherp.redis.mget(*obj_keys).tap do |objs|
-          objs.map! { |obj_json| deserialize(obj_json) }
+
+        scores = Hash[obj_keys]
+        obj_keys = scores.keys
+        obj_keys.delete(last_key) if last_key
+
+        out = []
+        Ublisherp.redis.mget(*obj_keys).each_with_index do |obj_json, i|
+          key = obj_keys[i]
+          out << deserialize(obj_json, key: key, score: scores[key])
         end
+
+        out[0, limit_count]
       else
         []
       end
@@ -113,6 +142,10 @@ class Ublisherp::Model < OpenStruct
     def has_many(*attrs)
       (@has_many_attrs ||= Set.new).merge attrs
     end
+  end
+
+  def ==(other)
+    self.class == other.class && self.id == other.id
   end
 
   def inspect

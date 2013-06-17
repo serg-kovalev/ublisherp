@@ -7,7 +7,7 @@ class ContentItem < ActiveRecord::Base
   publish_indexes :slug
 
   def ublisherp_stream_score
-    stream_at.to_f || 1234.56789
+    stream_score || 1234.56789
   end
 end
 

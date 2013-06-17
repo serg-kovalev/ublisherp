@@ -5,7 +5,7 @@ class CreateSchema < ActiveRecord::Migration
     t.integer :section_id
     t.string :slug
     t.datetime :null_datetime_at, null: true
-    t.datetime :stream_at, null: true
+    t.integer :stream_score, null: true
     t.timestamps
   end
 
