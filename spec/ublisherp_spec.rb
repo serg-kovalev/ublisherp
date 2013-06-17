@@ -10,6 +10,10 @@ describe Ublisherp do
     ContentItem.create!(section: section)
   end
 
+  let :inherited_content_item do
+    InheritedContentItem.create!(section: section)
+  end
+
   let :tag do
     Tag.create!(name: "Cheese")
   end
@@ -219,6 +223,16 @@ describe Ublisherp do
       content_item.unpublish!
       expect($redis.smembers(index_key1)).to eq([])
       expect($redis.smembers(index_key2)).to eq([])
+    end
+
+    it 'also publishes an inherited model to the right stream' do
+      inherited_content_item.save!
+      inherited_content_item.publish!
+
+      ici_key = Ublisherp::RedisKeys.key_for(inherited_content_item)
+      stream_key = Ublisherp::RedisKeys.key_for_stream_of(section, :inherited_content_items)
+
+      expect($redis.zrange(stream_key, 0, -1)).to match_array([ici_key])
     end
 
   end

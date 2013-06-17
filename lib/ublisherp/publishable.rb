@@ -1,20 +1,26 @@
+require 'set'
 require 'securerandom'
 
 module Ublisherp::Publishable
   extend ActiveSupport::Concern
 
+  included do
+    class_attribute :publish_association_attrs
+    class_attribute :publish_stream_specs
+    class_attribute :publish_index_attrs
+
+    self.publish_association_attrs = Set.new
+    self.publish_stream_specs = Set.new
+    self.publish_index_attrs = Set.new
+  end
+
   module ClassMethods
     def publish_associations(*assocs)
-      @publish_associations ||= []
-      @publish_associations.concat Array.new(assocs || [])
-      @publish_associations
+      self.publish_association_attrs.merge Array.new(assocs || [])
     end
 
     def publish_stream(name: :all, **options)
-      @publish_streams ||= []
-
-      @publish_streams << options.merge(name: name)
-      @publish_streams.uniq!
+      self.publish_stream_specs.add options.merge(name: name)
     end
 
     def publish_stream_of_model(model_cls, **options)
@@ -23,11 +29,8 @@ module Ublisherp::Publishable
       publish_stream **options
     end
 
-    def publish_streams; @publish_streams || []; end
-
     def publish_indexes(*attrs)
-      @publish_index_attrs ||= Set.new
-      @publish_index_attrs.merge attrs
+      self.publish_index_attrs.merge attrs
     end
 
     def published_type
@@ -58,7 +61,7 @@ module Ublisherp::Publishable
     as_publishable(opts).tap do |p|
       p = p[p.keys.first] # get root hash
       assocs = self.class.reflect_on_all_associations.select { |a|
-        self.class.publish_associations.include? a.name
+        publish_association_attrs.include? a.name
       }
       assocs.each do |a|
         case a.macro

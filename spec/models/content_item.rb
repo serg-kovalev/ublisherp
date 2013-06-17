@@ -10,3 +10,6 @@ class ContentItem < ActiveRecord::Base
     stream_at.to_f || 1234.56789
   end
 end
+
+class InheritedContentItem < ContentItem
+end

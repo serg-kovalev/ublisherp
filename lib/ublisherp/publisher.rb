@@ -49,7 +49,7 @@ class Ublisherp::Publisher
   end
 
   def publish_associations
-    publishable.class.publish_associations.each do |assoc_name|
+    publishable.publish_association_attrs.each do |assoc_name|
       published_keys = Set.new(Ublisherp.redis.smembers(
         RedisKeys.key_for_associations(publishable, assoc_name)))
 
@@ -88,7 +88,7 @@ class Ublisherp::Publisher
   end
 
   def publish_streams(**assocs)
-    publishable.class.publish_streams.each do |stream|
+    publishable.publish_stream_specs.each do |stream|
       Ublisherp.redis.multi do
         stream_key = RedisKeys.key_for_stream_of(publishable, stream[:name])
         stream_assocs = if stream[:associations].nil?
@@ -143,7 +143,7 @@ class Ublisherp::Publisher
 
     Ublisherp.redis.multi do
       unpublish_indexes current_indexes
-      publishable.class.publish_indexes.each do |index_attr|
+      publishable.publish_index_attrs.each do |index_attr|
         index_key = RedisKeys.key_for_index(publishable, index_attr)
         Ublisherp.redis.sadd index_key, publishable_key
         Ublisherp.redis.sadd RedisKeys.key_for_in_indexes(publishable), index_key

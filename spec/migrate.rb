@@ -1,6 +1,7 @@
 ActiveRecord::Migration.verbose = false
 class CreateSchema < ActiveRecord::Migration
   create_table :content_items do |t|
+    t.string :type
     t.integer :section_id
     t.string :slug
     t.datetime :null_datetime_at, null: true

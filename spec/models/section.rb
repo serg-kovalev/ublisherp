@@ -7,6 +7,7 @@ class Section < ActiveRecord::Base
 
   publish_stream
   publish_stream_of_model ContentItem
+  publish_stream_of_model InheritedContentItem
   publish_stream name: :if_stream, if: ->(m) { false }
   publish_stream name: :unless_stream, unless: ->(m) { true }
   publish_stream name: :class_stream, class: [Class.new]

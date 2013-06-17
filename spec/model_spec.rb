@@ -19,7 +19,7 @@ describe Ublisherp::Model do
     ci = create_and_store_content_item
 
     sci = SimpleContentItem.find(ci.id)
-    expect(sci.attributes.symbolize_keys).to \
+    expect(sci.attributes.symbolize_keys.merge(type: nil)).to \
       eq(ci.attributes.symbolize_keys.merge(section: nil, tags: [], tags_ids: []))
   end
 
