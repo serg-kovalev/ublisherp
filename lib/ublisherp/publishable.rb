@@ -12,6 +12,11 @@ module Ublisherp::Publishable
     self.publish_association_attrs = Set.new
     self.publish_stream_specs = Set.new
     self.publish_index_attrs = Set.new
+
+    include Hooks
+    define_hooks :before_publish, :after_publish, :before_unpublish_commit,
+                 :before_unpublish, :after_unpublish, :before_add_to_stream,
+                 :after_add_to_stream
   end
 
   module ClassMethods

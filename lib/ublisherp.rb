@@ -6,6 +6,7 @@ require 'redis-namespace'
 require 'multi_json'
 require 'oj'
 require 'active_support/all'
+require 'hooks'
 
 MultiJson.use :oj
 

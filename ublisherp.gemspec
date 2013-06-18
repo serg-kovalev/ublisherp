@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'activemodel', '>= 3.2', '< 5'
   s.add_runtime_dependency 'multi_json', '~> 1.0'
   s.add_runtime_dependency 'oj', '~> 2.0.11'
+  s.add_runtime_dependency 'hooks', '~> 0.3.1'
 
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'sqlite3'

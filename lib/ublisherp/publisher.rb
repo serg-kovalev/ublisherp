@@ -8,6 +8,8 @@ class Ublisherp::Publisher
   end
 
   def publish!(**options)
+    return if publishable.run_hook(:before_publish, options) == false
+
     Ublisherp.redis.multi do
       Ublisherp.redis.set publishable_key,
         Serializer.dump(publishable.as_publishable_with_associations)
@@ -20,10 +22,12 @@ class Ublisherp::Publisher
     publish_streams **options
     publish_indexes
 
-    callback_if_present :after_publish!, **options
+    publishable.run_hook :after_publish, options
   end
 
   def unpublish!(**options)
+    return if publishable.run_hook(:before_unpublish, options) == false
+
     streams = association_streams_to_unpublish
     indexes = publishable_current_indexes
 
@@ -36,18 +40,14 @@ class Ublisherp::Publisher
       unpublish_streams streams
       unpublish_indexes indexes
 
-      callback_if_present :before_unpublish_commit!, **options
+      publishable.run_hook :before_unpublish_commit, options
     end
-    callback_if_present :after_unpublish!, **options
+    publishable.run_hook :after_unpublish, options
   end
 
 
   private
   
-  def callback_if_present(callback, **options)
-    send(callback, **options) if respond_to?(callback)
-  end
-
   def publish_associations
     publishable.publish_association_attrs.each do |assoc_name|
       published_keys = Set.new(Ublisherp.redis.smembers(
@@ -98,6 +98,8 @@ class Ublisherp::Publisher
                         end
         stream_assocs.each do |sa|
           stream_obj = assocs[sa]
+          next if stream_obj.run_hook(:before_add_to_stream, publishable,
+                                      stream[:name]) == false
           next if (stream[:if] && !stream[:if].call(stream_obj)) ||
             (stream[:unless] && stream[:unless].call(stream_obj))
 
@@ -112,6 +114,8 @@ class Ublisherp::Publisher
 
           Ublisherp.redis.sadd RedisKeys.key_for_streams_set(stream_obj),
                                stream_key
+
+          stream_obj.run_hook :after_add_to_stream, publishable, stream[:name]
         end
 
         Ublisherp.redis.sadd RedisKeys.key_for_has_streams(publishable),

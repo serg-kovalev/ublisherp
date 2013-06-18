@@ -84,17 +84,19 @@ describe Ublisherp do
     end
 
     it 'runs after callbacks on publish' do
-      content_item.publisher.should_receive(:after_publish!)
+      content_item.should_receive(:before_publish_callback_test)
+      content_item.should_receive(:after_publish_callback_test)
+      content_item.should_receive(:before_add_to_stream_callback_test).
+        at_least(:once)
+      content_item.should_receive(:after_add_to_stream_callback_test).
+        at_least(:once)
       content_item.publish!
     end
 
     it 'runs before callbacks on unpublish' do
-      content_item.publisher.should_receive(:before_unpublish_commit!)
-      content_item.unpublish!
-    end
-
-    it 'runs after callbacks on unpublish' do
-      content_item.publisher.should_receive(:after_unpublish!)
+      content_item.should_receive(:before_unpublish_callback_test)
+      content_item.should_receive(:before_unpublish_commit_callback_test)
+      content_item.should_receive(:after_unpublish_callback_test)
       content_item.unpublish!
     end
 
