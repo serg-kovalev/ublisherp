@@ -41,6 +41,12 @@ describe Ublisherp::Model do
     st = SimpleTag.find(tag.id)
 
     expect(st.stream).to eq([sci2, sci])
+
+    orig_default_limit_count = st.class.default_limit_count
+    st.class.default_limit_count = 1
+    expect(st.stream).to eq([sci2])
+    st.class.default_limit_count = orig_default_limit_count
+
     expect(st.stream(reverse: false)).to eq([sci, sci2])
   end
 

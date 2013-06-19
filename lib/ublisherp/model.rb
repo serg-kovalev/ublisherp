@@ -11,7 +11,8 @@ class Ublisherp::Model < OpenStruct
 
   class RecordNotFound < StandardError; end
 
-  DEFAULT_LIMIT_COUNT = 25
+  class_attribute :default_limit_count
+  self.default_limit_count = 25
 
   class << self
 
@@ -103,9 +104,9 @@ class Ublisherp::Model < OpenStruct
     alias_method :to_a, :all
 
     def get_sorted_set(key, reverse: true, min: '-inf', max: '+inf',
-                       limit_count: DEFAULT_LIMIT_COUNT, page: nil,
-                       last_key: nil)
+                       limit_count: nil, page: nil, last_key: nil)
 
+      limit_count ||= default_limit_count
       adj_limit_count = limit_count
       adj_limit_count += 1 if last_key
       min_limit = if page
