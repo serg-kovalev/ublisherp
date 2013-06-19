@@ -30,6 +30,13 @@ class Ublisherp::Model < OpenStruct
       @@published_types ||= {}
     end
 
+    def has_stream(name, **options)
+      define_method name do |**options|
+        options.merge! name: name
+        stream **options
+      end
+    end
+
     def find(id)
       data_key = if id.is_a?(Hash)
                    if id.size != 1

@@ -44,6 +44,19 @@ describe Ublisherp::Model do
     expect(st.stream(reverse: false)).to eq([sci, sci2])
   end
 
+  it 'returns a stream of objects from a helper defined with has_stream' do
+    sec = Section.new(name: "Cheese")
+    ci = create_and_store_content_item(stream_score: Time.now - 60, section: sec)
+    ci2 = create_and_store_content_item(stream_score: Time.now, section: sec)
+
+    ssec = SimpleSection.find(sec.id)
+    sci1 = SimpleContentItem.find(ci.id)
+    sci2 = SimpleContentItem.find(ci2.id)
+
+    expect(ssec.content_items).to eq([sci2, sci1])
+    expect(ssec.content_items(reverse: false)).to eq([sci1, sci2])
+  end
+
   it 'pages through a stream' do
     stream_time = Time.now.change(ms: 0).to_i
     cis = []
