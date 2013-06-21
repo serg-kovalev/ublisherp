@@ -83,6 +83,23 @@ describe Ublisherp do
         Ublisherp::RedisKeys.key_for(content_item))).to be_true
     end
 
+    it "unpublishes dependent associations on unpublish" do
+      content_item.publish!
+      ci2 = content_item.dup
+      ci2.save!
+      ci2.publish!
+      expect($redis.get(Ublisherp::RedisKeys.key_for(content_item))).
+        to be_present
+      expect($redis.get(Ublisherp::RedisKeys.key_for(ci2))).
+        to be_present
+
+      section.unpublish!
+      expect($redis.get(Ublisherp::RedisKeys.key_for(content_item))).
+        to_not be_present
+      expect($redis.get(Ublisherp::RedisKeys.key_for(ci2))).
+        to_not be_present
+    end
+
     it 'runs after callbacks on publish' do
       content_item.should_receive(:before_publish_callback_test)
       content_item.should_receive(:after_publish_callback_test)

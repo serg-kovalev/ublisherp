@@ -6,10 +6,12 @@ module Ublisherp::Publishable
 
   included do
     class_attribute :publish_association_attrs
+    class_attribute :dependent_publish_association_attrs
     class_attribute :publish_stream_specs
     class_attribute :publish_index_attrs
 
     self.publish_association_attrs = Set.new
+    self.dependent_publish_association_attrs = Set.new
     self.publish_stream_specs = Set.new
     self.publish_index_attrs = Set.new
 
@@ -20,8 +22,11 @@ module Ublisherp::Publishable
   end
 
   module ClassMethods
-    def publish_associations(*assocs)
-      self.publish_association_attrs.merge Array.new(assocs || [])
+    def publish_associations(*assocs, dependent: false)
+      assocs ||= []
+      self.publish_association_attrs.merge(assocs).tap do
+        self.dependent_publish_association_attrs.merge(assocs) if dependent
+      end
     end
 
     def publish_stream(name: :all, **options)

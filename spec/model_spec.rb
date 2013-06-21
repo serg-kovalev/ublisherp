@@ -109,6 +109,23 @@ describe Ublisherp::Model do
       match_array(expected_scis)
   end
 
+  it "doesn't crash when it has to remove the last key and there are no more objects to retrieve" do
+    stream_time = Time.now.change(ms: 0).to_i
+    cis = []
+    tag = Tag.create!(name: 'cheese')
+
+    4.times do
+      ci = create_and_store_content_item(stream_score: stream_time)
+      ci.tags << tag
+      ci.save!
+      ci.publish!
+    end
+
+    st = SimpleTag.find(tag.id)
+
+    expect(st.stream(page: 5, limit_count: 1)).to eq([])
+  end
+
   it 'returns all objects published' do
     ci = create_and_store_content_item(stream_score: Time.now - 60)
     ci2 = create_and_store_content_item(stream_score: Time.now)
