@@ -18,7 +18,8 @@ module Ublisherp::Publishable
     include Hooks
     define_hooks :before_publish, :before_first_publish, :after_publish,
       :after_first_publish, :before_unpublish_commit, :before_unpublish,
-      :after_unpublish, :before_add_to_stream, :after_add_to_stream
+      :after_unpublish, :before_add_to_stream, :before_first_add_to_stream,
+      :after_add_to_stream, :after_first_add_to_stream
   end
 
   module ClassMethods

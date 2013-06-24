@@ -109,6 +109,10 @@ describe Ublisherp do
         at_least(:once)
       content_item.should_receive(:after_add_to_stream_callback_test).
         at_least(:once)
+      content_item.should_receive(:before_first_add_to_stream_callback_test).
+        at_least(:once)
+      content_item.should_receive(:after_first_add_to_stream_callback_test).
+        at_least(:once)
       content_item.publish!
     end
 
@@ -116,6 +120,8 @@ describe Ublisherp do
       content_item.publish!
       content_item.should_not_receive(:before_first_publish_callback_test)
       content_item.should_not_receive(:after_first_publish_callback_test)
+      content_item.should_not_receive(:before_first_add_to_stream_callback_test)
+      content_item.should_not_receive(:after_first_add_to_stream_callback_test)
       content_item.publish!
     end
 
