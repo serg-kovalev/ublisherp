@@ -86,7 +86,7 @@ class Ublisherp::Publisher
   end
 
   def unpublish_associations
-    publishable.dependent_publish_association_attrs.each do |assoc_name|
+    publishable.unpublish_association_attrs.each do |assoc_name|
       each_from_assoc assoc_name do |instance|
         instance.publisher.unpublish! publishable_name => publishable
         unpublish_from_association assoc_name, RedisKeys.key_for(instance)

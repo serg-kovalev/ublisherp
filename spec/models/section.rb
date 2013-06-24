@@ -6,6 +6,7 @@ class Section < ActiveRecord::Base
   has_many :content_items
 
   publish_associations :content_items, dependent: true
+  unpublish_associations :content_items
   publish_stream
   publish_stream_of_model ContentItem
   publish_stream_of_model InheritedContentItem
