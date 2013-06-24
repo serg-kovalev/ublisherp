@@ -9,6 +9,10 @@ class Ublisherp::Publisher
 
   def publish!(**options)
     return if publishable.run_hook(:before_publish, options) == false
+    first_publish = !Ublisherp.redis.exists(publishable_key)
+    if first_publish
+      return if publishable.run_hook(:before_first_publish) == false
+    end
 
     Ublisherp.redis.multi do
       Ublisherp.redis.set publishable_key,
@@ -22,6 +26,7 @@ class Ublisherp::Publisher
     publish_streams **options
     publish_indexes
 
+    publishable.run_hook :after_first_publish, options if first_publish
     publishable.run_hook :after_publish, options
   end
 

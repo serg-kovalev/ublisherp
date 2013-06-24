@@ -102,13 +102,23 @@ describe Ublisherp do
 
     it 'runs after callbacks on publish' do
       content_item.should_receive(:before_publish_callback_test)
+      content_item.should_receive(:before_first_publish_callback_test)
       content_item.should_receive(:after_publish_callback_test)
+      content_item.should_receive(:after_first_publish_callback_test)
       content_item.should_receive(:before_add_to_stream_callback_test).
         at_least(:once)
       content_item.should_receive(:after_add_to_stream_callback_test).
         at_least(:once)
       content_item.publish!
     end
+
+    it "only runs 'first' callbacks on first publish" do
+      content_item.publish!
+      content_item.should_not_receive(:before_first_publish_callback_test)
+      content_item.should_not_receive(:after_first_publish_callback_test)
+      content_item.publish!
+    end
+
 
     it 'runs before callbacks on unpublish' do
       content_item.should_receive(:before_unpublish_callback_test)

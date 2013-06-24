@@ -8,7 +8,9 @@ class ContentItem < ActiveRecord::Base
   publish_indexes :slug
 
   before_publish :before_publish_callback_test
+  before_first_publish :before_first_publish_callback_test
   after_publish :after_publish_callback_test
+  after_first_publish :after_first_publish_callback_test
   before_unpublish :before_unpublish_callback_test
   before_unpublish_commit :before_unpublish_commit_callback_test
   after_unpublish :after_unpublish_callback_test
@@ -20,7 +22,9 @@ class ContentItem < ActiveRecord::Base
   end
 
   def before_publish_callback_test(*); end
+  def before_first_publish_callback_test(*); end
   def after_publish_callback_test(*); end
+  def after_first_publish_callback_test(*); end
   def before_unpublish_callback_test(*); end
   def before_unpublish_commit_callback_test(*); end
   def after_unpublish_callback_test(*); end
