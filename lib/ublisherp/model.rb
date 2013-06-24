@@ -108,12 +108,17 @@ class Ublisherp::Model < OpenStruct
 
       limit_count ||= default_limit_count
       adj_limit_count = limit_count
+      last_page_count = adj_limit_count
+      adj_limit_count += 1 # for last page detection
       adj_limit_count += 1 if last_key
+ 
       min_limit = if page
                     (page - 1) * limit_count
                   else
                     0
                   end
+      out = Ublisherp::Collection.new
+
       obj_keys = if reverse
                    Ublisherp.redis.zrevrangebyscore(key, max, min,
                                                     limit: [min_limit,
@@ -125,22 +130,24 @@ class Ublisherp::Model < OpenStruct
                                                          adj_limit_count],
                                                  withscores: true)
                  end
-      if obj_keys.present?
 
+      if obj_keys.present?
         scores = Hash[obj_keys]
         obj_keys = scores.keys
         obj_keys.delete(last_key) if last_key
 
-        out = []
+        if obj_keys.size > last_page_count
+          out.has_more = true
+          obj_keys.slice! limit_count..-1
+        end
+
         Ublisherp.redis.mget(*obj_keys).each_with_index do |obj_json, i|
           key = obj_keys[i]
           out << deserialize(obj_json, key: key, score: scores[key])
         end
-
-        out[0, limit_count]
-      else
-        []
       end
+
+      out
     end
 
     def belongs_to(*attrs)

@@ -40,11 +40,15 @@ describe Ublisherp::Model do
     sci2 = SimpleContentItem.find(ci2.id)
     st = SimpleTag.find(tag.id)
 
-    expect(st.stream).to eq([sci2, sci])
+    stream_arr = st.stream
+    expect(stream_arr).to eq([sci2, sci])
+    expect(stream_arr.has_more?).to be_false
 
     orig_default_limit_count = st.class.default_limit_count
     st.class.default_limit_count = 1
-    expect(st.stream).to eq([sci2])
+    stream_arr = st.stream
+    expect(stream_arr).to eq([sci2])
+    expect(stream_arr.has_more?).to be_true
     st.class.default_limit_count = orig_default_limit_count
 
     expect(st.stream(reverse: false)).to eq([sci, sci2])
@@ -93,10 +97,18 @@ describe Ublisherp::Model do
     scis = cis.map { |ci| SimpleContentItem.find(ci.id) }
     st = SimpleTag.find(tag.id)
 
-    expect(st.stream).to match_array(scis[0..24])
-    expect(st.stream(page: 1)).to match_array(scis[0..24])
-    expect(st.stream(page: 2)).to match_array(scis[25..50])
-    expect(st.stream(page: 3)).to match_array([])
+    stream_arr = st.stream
+    expect(stream_arr).to match_array(scis[0..24])
+    expect(stream_arr.has_more?).to be_true
+    stream_arr = st.stream(page: 1)
+    expect(stream_arr).to match_array(scis[0..24])
+    expect(stream_arr.has_more?).to be_true
+    stream_arr = st.stream(page: 2)
+    expect(stream_arr).to match_array(scis[25..50])
+    expect(stream_arr.has_more?).to be_false
+    stream_arr = st.stream(page: 3)
+    expect(stream_arr).to match_array([])
+    expect(stream_arr.has_more?).to be_false
 
     first_sci = scis.detect { |sci| sci.id == dupe_ids.last }
     expect(first_sci).to_not be_nil
