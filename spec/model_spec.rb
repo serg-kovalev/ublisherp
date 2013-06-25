@@ -63,8 +63,10 @@ describe Ublisherp::Model do
     sci1 = SimpleContentItem.find(ci.id)
     sci2 = SimpleContentItem.find(ci2.id)
 
-    expect(ssec.content_items).to eq([sci2, sci1])
-    expect(ssec.content_items(reverse: false)).to eq([sci1, sci2])
+    expect(ssec.content_items).to eq([sci2])
+    expect(ssec.content_items(page: 2)).to eq([sci1])
+    expect(ssec.content_items(reverse: false, limit_count: 2)).
+      to eq([sci1, sci2])
   end
 
   it 'pages through a stream' do

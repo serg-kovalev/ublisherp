@@ -31,8 +31,9 @@ class Ublisherp::Model < OpenStruct
       @@published_types ||= {}
     end
 
-    def has_stream(name, **options)
+    def has_stream(name, **default_options)
       define_method name do |**options|
+        options.reverse_merge! default_options
         options.merge! name: name
         stream **options
       end
