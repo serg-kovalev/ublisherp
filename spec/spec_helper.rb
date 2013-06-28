@@ -20,11 +20,8 @@ RSpec.configure do |config|
   config.order = 'random'
 
   config.before :all do
-    options = {db:15}
-    options[:logger] = Logger.new(STDOUT) if ENV['LOG'] == 'true'
-
-    $redis = Redis.new(options)
-    Ublisherp.redis = $redis
+    Ublisherp.redis_url = "redis://127.0.0.1:6379/1"
+    $redis = Ublisherp.redis
 
     ActiveRecord::Base.establish_connection(
       adapter: "sqlite3",

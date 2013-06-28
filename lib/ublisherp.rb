@@ -7,15 +7,25 @@ require 'multi_json'
 require 'oj'
 require 'active_support/all'
 require 'hooks'
+require 'thread'
 
 MultiJson.use :oj
 
 module Ublisherp
 
-  mattr_accessor :redis
+  mattr_accessor :redis_url, :redis_namespace
+
+  self.redis_url = "redis://127.0.0.1:6379/0"
+  self.redis_namespace = :ublisherp
 
   def self.redis
-    @@redis ||= Redis::Namespace.new(:ublisherp, Redis.new)
+    Thread.current[:ublisherp_redis] ||=
+      Redis::Namespace.new(redis_namespace, redis: Redis.new(url: redis_url))
+  end
+
+  def self.reconnect_redis
+    Thread.current[:ublisherp_redis] = nil
+    redis
   end
 
   if defined?(Rails)
