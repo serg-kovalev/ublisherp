@@ -104,6 +104,10 @@ class Ublisherp::Model < OpenStruct
 
     alias_method :to_a, :all
 
+    def exists?(id)
+      Ublisherp.redis.exists RedisKeys.key_for(self, id: id)
+    end
+
     def get_sorted_set(key, reverse: true, min: '-inf', max: '+inf',
                        limit_count: nil, page: nil, last_key: nil)
 

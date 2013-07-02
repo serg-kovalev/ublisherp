@@ -15,6 +15,15 @@ describe Ublisherp::Model do
     }.to raise_error(Ublisherp::Model::RecordNotFound)
   end
 
+  it "responds to exists? properly" do
+    ci = ContentItem.new
+    ci.save!
+    id = ci.id
+    expect(SimpleContentItem.exists?(id)).to be_false
+    ci.publish!
+    expect(SimpleContentItem.exists?(id)).to be_true
+  end
+
   it 'finds a single entity via ID' do
     ci = create_and_store_content_item
 
