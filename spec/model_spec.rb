@@ -16,12 +16,16 @@ describe Ublisherp::Model do
   end
 
   it "responds to exists? properly" do
-    ci = ContentItem.new
+    ci = ContentItem.new(slug: 'cheese')
     ci.save!
     id = ci.id
     expect(SimpleContentItem.exists?(id)).to be_false
+    expect(SimpleContentItem.exists?(slug: 'cheese')).to be_false
+
     ci.publish!
+
     expect(SimpleContentItem.exists?(id)).to be_true
+    expect(SimpleContentItem.exists?(slug: 'cheese')).to be_true
   end
 
   it 'finds a single entity via ID' do

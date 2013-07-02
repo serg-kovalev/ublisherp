@@ -40,19 +40,7 @@ class Ublisherp::Model < OpenStruct
     end
 
     def find(id)
-      data_key = if id.is_a?(Hash)
-                   if id.size != 1
-                     raise NotImplementedError,
-                       "find can only have one index condition for now"
-                   end
-
-                   Ublisherp.redis.srandmember(
-                     RedisKeys.key_for_index(self, id.keys.first,
-                                             id.values.first))
-                 else
-                   RedisKeys.key_for(self, id: id)
-                 end
-      get data_key
+      get key_for_id_or_index_finder(id)
     rescue RecordNotFound
       raise RecordNotFound, "#{self.name} not found with id #{id.inspect}"
     end
@@ -105,7 +93,7 @@ class Ublisherp::Model < OpenStruct
     alias_method :to_a, :all
 
     def exists?(id)
-      Ublisherp.redis.exists RedisKeys.key_for(self, id: id)
+      Ublisherp.redis.exists key_for_id_or_index_finder(id)
     end
 
     def get_sorted_set(key, reverse: true, min: '-inf', max: '+inf',
@@ -161,6 +149,23 @@ class Ublisherp::Model < OpenStruct
 
     def has_many(*attrs)
       (@has_many_attrs ||= Set.new).merge attrs
+    end
+
+    private
+
+    def key_for_id_or_index_finder(id)
+      if id.is_a?(Hash)
+        if id.size != 1
+          raise NotImplementedError,
+            "find can only have one index condition for now"
+        end
+
+        Ublisherp.redis.srandmember(
+          RedisKeys.key_for_index(self, id.keys.first,
+                                  id.values.first))
+      else
+        RedisKeys.key_for(self, id: id)
+      end
     end
   end
 
