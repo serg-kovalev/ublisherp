@@ -182,13 +182,17 @@ describe Ublisherp::Model do
     sci_stuff = SimpleContentItem.find(ci_stuff.id)
     sci_things = SimpleContentItem.find(ci_things.id)
 
+    expect(SimpleContentItem.exists?(slug: 'stuff', visible: true)).to be_true
     expect(SimpleContentItem.find(slug: 'stuff', visible: true)).to eq(sci_stuff)
+    expect(SimpleContentItem.exists?(slug: 'things', visible: false)).to be_true
     expect(SimpleContentItem.find(slug: 'things', visible: false)).to eq(sci_things)
 
+    expect(SimpleContentItem.exists?(slug: 'stuff', visible: false)).to be_false
     expect {
       SimpleContentItem.find(slug: 'stuff', visible: false)
     }.to raise_error(Ublisherp::Model::RecordNotFound)
 
+    expect(SimpleContentItem.exists?(slug: 'things', visible: true)).to be_false
     expect {
       SimpleContentItem.find(slug: 'things', visible: true)
     }.to raise_error(Ublisherp::Model::RecordNotFound)

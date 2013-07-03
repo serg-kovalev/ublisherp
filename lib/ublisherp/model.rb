@@ -95,7 +95,9 @@ class Ublisherp::Model < OpenStruct
     alias_method :to_a, :all
 
     def exists?(id)
-      Ublisherp.redis.exists key_for_id_or_index_finder(id)
+      key = key_for_id_or_index_finder(id)
+      return false if key.nil?
+      Ublisherp.redis.exists key
     end
 
     def get_sorted_set(key, reverse: true, min: '-inf', max: '+inf',
