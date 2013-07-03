@@ -6,6 +6,7 @@ class CreateSchema < ActiveRecord::Migration
     t.string :slug
     t.datetime :null_datetime_at, null: true
     t.integer :stream_score, null: true
+    t.boolean :visible, null: false, default: true
     t.timestamps
   end
 

@@ -40,7 +40,9 @@ class Ublisherp::Model < OpenStruct
     end
 
     def find(id)
-      get key_for_id_or_index_finder(id)
+      key = key_for_id_or_index_finder(id)
+      raise RecordNotFound unless key
+      get key
     rescue RecordNotFound
       raise RecordNotFound, "#{self.name} not found with id #{id.inspect}"
     end
@@ -155,17 +157,43 @@ class Ublisherp::Model < OpenStruct
 
     def key_for_id_or_index_finder(id)
       if id.is_a?(Hash)
-        if id.size != 1
-          raise NotImplementedError,
-            "find can only have one index condition for now"
+        if id.size > 1
+          Ublisherp.redis.srandmember(
+            secondary_index_key_for_finder_conditions(id))
+
+        elsif id.size == 1
+          Ublisherp.redis.srandmember(
+            RedisKeys.key_for_index(self, id.keys.first,
+                                    id.values.first))
+        else
+          raise ArgumentError, "empty conditions"
         end
 
-        Ublisherp.redis.srandmember(
-          RedisKeys.key_for_index(self, id.keys.first,
-                                  id.values.first))
       else
         RedisKeys.key_for(self, id: id)
       end
+    end
+
+    def secondary_index_key_for_finder_conditions(h)
+      key = nil
+      ttl = 10 * 1000
+
+      RedisKeys.key_for_secondary_index(self, h).tap do |key|
+        ttl = Ublisherp.redis.multi do
+          Ublisherp.redis.pttl key
+          Ublisherp.redis.expire key, -1
+        end.first
+
+        unless Ublisherp.redis.exists(key)
+          index_keys = h.inject([]) { |out, c|
+            out << RedisKeys.key_for_index(self, *c)
+          }
+
+          Ublisherp.redis.sinterstore(key, *index_keys)
+        end
+      end
+    ensure
+      Ublisherp.redis.pexpire key, ttl
     end
   end
 

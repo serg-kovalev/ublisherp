@@ -173,10 +173,25 @@ describe Ublisherp::Model do
     expect {
       SimpleContentItem.find(slug: 'qwer')
     }.to raise_error(Ublisherp::Model::RecordNotFound)
+  end
+
+  it "can retrieve a content item using two indexes" do
+    ci_stuff = create_and_store_content_item(slug: 'stuff', visible: true)
+    ci_things = create_and_store_content_item(slug: 'things', visible: false)
+
+    sci_stuff = SimpleContentItem.find(ci_stuff.id)
+    sci_things = SimpleContentItem.find(ci_things.id)
+
+    expect(SimpleContentItem.find(slug: 'stuff', visible: true)).to eq(sci_stuff)
+    expect(SimpleContentItem.find(slug: 'things', visible: false)).to eq(sci_things)
 
     expect {
-      SimpleContentItem.find(slug: 'qwer', asdf: 'erty')
-    }.to raise_error(NotImplementedError)
+      SimpleContentItem.find(slug: 'stuff', visible: false)
+    }.to raise_error(Ublisherp::Model::RecordNotFound)
+
+    expect {
+      SimpleContentItem.find(slug: 'things', visible: true)
+    }.to raise_error(Ublisherp::Model::RecordNotFound)
   end
 
   it 'raises an error for unknown methods' do

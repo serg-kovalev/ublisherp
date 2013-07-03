@@ -6,6 +6,7 @@ class ContentItem < ActiveRecord::Base
   has_and_belongs_to_many :tags
   publish_associations :section, :tags
   publish_indexes :slug
+  publish_indexes :visible
 
   before_publish :before_publish_callback_test
   before_first_publish :before_first_publish_callback_test

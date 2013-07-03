@@ -1,4 +1,7 @@
+require 'digest/sha2'
+
 module Ublisherp::RedisKeys
+  Nothing = Object.new
 
   def self.class_name_for(obj, id: nil)
     if obj.respond_to?(:published_type)
@@ -39,8 +42,14 @@ module Ublisherp::RedisKeys
     "#{key_for(obj)}:in_streams"
   end
 
-  def self.key_for_index(obj, index, value = nil)
-    "#{class_name_for(obj)}:index:#{index}:#{value || obj.__send__(index)}"
+  def self.key_for_index(obj, index, value = Nothing)
+    "#{class_name_for(obj)}:index:#{index}:" << \
+      (value == Nothing ? obj.__send__(index) : value).to_s
+  end
+
+  def self.key_for_secondary_index(obj, conditions)
+    hash = Digest::SHA2.new(256).base64digest(conditions.inspect)
+    "#{class_name_for(obj)}:secondary_index:#{hash}"
   end
 
   def self.key_for_in_indexes(obj)
