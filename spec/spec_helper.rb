@@ -2,8 +2,6 @@ require 'rubygems'
 require 'bundler/setup'
 Bundler.require :default, :development
 
-require 'pry'
-require 'pry-debugger'
 require 'active_record'
 require 'rspec'
 require 'sqlite3'
