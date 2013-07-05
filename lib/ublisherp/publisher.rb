@@ -107,71 +107,66 @@ class Ublisherp::Publisher
   end
 
   def publish_streams(**assocs)
-    publishable.publish_stream_specs.each do |stream|
-      stream_key = RedisKeys.key_for_stream_of(publishable, stream[:name])
-      stream_assocs = if stream[:associations].nil?
+    publishable.publish_stream_specs.each do |stream_spec|
+      stream = stream_spec.for_publishable(publishable)
+      stream_assocs = if stream.associations.nil?
                         assocs.keys
                       else
-                        stream[:associations] & assocs.keys
+                        stream.associations & assocs.keys
                       end
       stream_assocs.each do |sa|
         stream_obj = assocs[sa]
         stream_obj_key = RedisKeys.key_for(stream_obj)
-        should_add = true
-        should_unpublish = -> { should_add = false }
 
-        should_unpublish[] if (stream[:if] && !stream[:if].call(stream_obj)) ||
-          (stream[:unless] && stream[:unless].call(stream_obj))
-
-        stream_classes = Array(stream[:class])
-        if stream_classes.present?
-          should_unpublish[] unless stream_classes.any? { |cls|
-            cls === stream_obj
-          }
-        end
-
-        if stream_obj.run_hook(:before_add_to_stream, publishable,
-                               stream[:name]) == false
-          should_unpublish[]
-        end
-
-        first_stream_add = !Ublisherp.redis.zscore(stream_key, stream_obj_key)
-        if first_stream_add && should_add &&
-           stream_obj.run_hook(:before_first_add_to_stream, publishable,
-                               stream[:name]) == false
-          should_unpublish[]
-        end
 
         streams_set_key = RedisKeys.key_for_streams_set(stream_obj)
+        first_stream_add = stream.first_stream_add?(stream_obj)
+        check_hooks = lambda {
+          if stream_obj.run_hook(:before_add_to_stream, publishable,
+                                 stream.name) == false
+            return false
+          end
 
-        if should_add
+          if first_stream_add &&
+            stream_obj.run_hook(:before_first_add_to_stream, publishable,
+                                stream.name) == false
+            return false
+          end
+
+          return true
+        }
+
+        if stream.add_to_stream?(stream_obj) && check_hooks.call
           Ublisherp.redis.multi do
-            Ublisherp.redis.zadd stream_key, score_for(stream_obj), stream_obj_key
-            Ublisherp.redis.sadd streams_set_key, stream_key
+            Ublisherp.redis.zadd stream.key, score_for(stream_obj), stream_obj_key
+            Ublisherp.redis.sadd streams_set_key, stream.key
           end
 
           if first_stream_add
             stream_obj.run_hook :after_first_add_to_stream, publishable,
-              stream[:name]
+              stream.name
           end
-          stream_obj.run_hook :after_add_to_stream, publishable, stream[:name]
+          stream_obj.run_hook :after_add_to_stream, publishable, stream.name
 
         else
           Ublisherp.redis.multi do
-            Ublisherp.redis.zrem stream_key, stream_obj_key
-            Ublisherp.redis.srem streams_set_key, stream_key
+            Ublisherp.redis.zrem stream.key, stream_obj_key
+            Ublisherp.redis.srem streams_set_key, stream.key
           end
 
           unless first_stream_add
             stream_obj.run_hook :after_remove_from_stream, publishable,
-                                stream[:name]
+                                stream.name
           end
         end
       end
 
       Ublisherp.redis.sadd RedisKeys.key_for_has_streams(publishable),
-        stream_key
+        stream.key
     end
+  end
+
+  def should_publish_to_stream_after_hooks?(stream_spec, stream_obj)
   end
 
   def unpublish_from_association(assoc_name, *keys)

@@ -40,4 +40,7 @@ class ContentItem < ActiveRecord::Base
 end
 
 class InheritedContentItem < ContentItem
+  def hmm?
+    true
+  end
 end

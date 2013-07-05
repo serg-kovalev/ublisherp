@@ -35,7 +35,7 @@ module Ublisherp::Publishable
     end
 
     def publish_stream(name: :all, **options)
-      self.publish_stream_specs.add options.merge(name: name)
+      self.publish_stream_specs.add Ublisherp::StreamSpec.new(options.merge(name: name))
     end
 
     def publish_stream_of_model(model_cls, **options)
