@@ -113,6 +113,7 @@ describe Ublisherp do
         at_least(:once)
       content_item.should_receive(:after_first_add_to_stream_callback_test).
         at_least(:once)
+      content_item.should_not_receive(:after_remove_from_stream_callback_test)
       content_item.publish!
     end
 
@@ -170,9 +171,11 @@ describe Ublisherp do
 
       content_item.publish!
 
-      stream_keys = [section, tag].map { |o|
-        Ublisherp::RedisKeys.key_for_stream_of(o, :all)
-      } << Ublisherp::RedisKeys.key_for_stream_of(section, :content_items)
+      stream_keys = [[tag, :all], [section, :all],
+                     [section, :visible_content_items],
+                     [section, :content_items]].map do |o|
+        Ublisherp::RedisKeys.key_for_stream_of(*o)
+      end
 
       expect($redis.smembers(stream_set_key)).to match_array(stream_keys)
     end
@@ -187,11 +190,31 @@ describe Ublisherp do
       content_key = Ublisherp::RedisKeys.key_for(content_item)
       stream_set_key = Ublisherp::RedisKeys.key_for_streams_set(content_item)
       
-      [tag, section].each do |o|
-        stream_key = Ublisherp::RedisKeys.key_for_stream_of(tag, :all)
+      [[tag, :all], [section, :all], [section, :visible_content_items]].each do |o|
+        stream_key = Ublisherp::RedisKeys.key_for_stream_of(*o)
         expect($redis.zrange(stream_key, 0, -1)).to eq([])
         expect($redis.scard(stream_set_key)).to eq(0)
       end
+    end
+
+    it "unpublishes from a stream when the item should no longer be in it" do
+      expect(content_item.visible?).to be_true
+      content_item.publish!
+
+      content_key = Ublisherp::RedisKeys.key_for(content_item)
+      stream_key = Ublisherp::RedisKeys.key_for_stream_of(section, :visible_content_items)
+      streams_set_key = Ublisherp::RedisKeys.key_for_streams_set(content_item)
+
+      expect($redis.zrange(stream_key, 0, -1)).to eq([content_key])
+      expect($redis.sismember(streams_set_key, stream_key)).to be_true
+
+      content_item.visible = false
+      content_item.save!
+      content_item.should_receive(:after_remove_from_stream_callback_test)
+      content_item.publish!
+
+      expect($redis.zrange(stream_key, 0, -1)).to eq([])
+      expect($redis.sismember(streams_set_key, stream_key)).to be_false
     end
 
     it 'tracks associations and unpublishes itself from old ones' do

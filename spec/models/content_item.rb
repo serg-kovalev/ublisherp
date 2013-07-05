@@ -19,6 +19,7 @@ class ContentItem < ActiveRecord::Base
   before_first_add_to_stream :before_first_add_to_stream_callback_test
   after_add_to_stream :after_add_to_stream_callback_test
   after_first_add_to_stream :after_first_add_to_stream_callback_test
+  after_remove_from_stream :after_remove_from_stream_callback_test
 
   def ublisherp_stream_score
     stream_score || 1234.56789
@@ -35,6 +36,7 @@ class ContentItem < ActiveRecord::Base
   def after_add_to_stream_callback_test(*); end
   def before_first_add_to_stream_callback_test(*); end
   def after_first_add_to_stream_callback_test(*); end
+  def after_remove_from_stream_callback_test(*); end
 end
 
 class InheritedContentItem < ContentItem
