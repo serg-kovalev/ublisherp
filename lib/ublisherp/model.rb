@@ -14,6 +14,8 @@ class Ublisherp::Model < OpenStruct
   class_attribute :default_limit_count
   self.default_limit_count = 25
 
+  class_attribute :known_fields
+
   class << self
 
     include Ublisherp
@@ -29,6 +31,10 @@ class Ublisherp::Model < OpenStruct
 
     def published_types
       @@published_types ||= {}
+    end
+
+    def has_fields(*fields)
+      (self.known_fields ||= Set.new).merge fields.map(&:to_sym)
     end
 
     def has_stream(name, **default_options)
@@ -220,7 +226,8 @@ class Ublisherp::Model < OpenStruct
   alias :attributes :to_h
 
   def method_missing(name, *args, &block)
-    unless to_h.keys.include?(name.to_sym)
+    name = name.to_sym
+    unless to_h.keys.include?(name) || self.known_fields.include?(name)
       raise NoMethodError,
         "undefined method `#{name}' for #{self.inspect}:#{self.class.name}"
     end

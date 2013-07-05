@@ -207,6 +207,13 @@ describe Ublisherp::Model do
     }.to raise_error(NoMethodError)
   end
 
+  it "has known fields that will not raise an error when requested, even if they don't exist" do
+    ci = create_and_store_content_item
+    sci = SimpleContentItem.find(ci.id)
+
+    expect(sci.cheese_breed).to be_nil
+  end
+
   it "doesn't claim it responds to methods it doesn't have a hash key for" do
     ci = create_and_store_content_item
     sci = SimpleContentItem.find(ci.id)
