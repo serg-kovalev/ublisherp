@@ -214,6 +214,13 @@ describe Ublisherp::Model do
     expect(sci.cheese_breed).to be_nil
   end
 
+  it "claims it responds to known fields" do
+    ci = create_and_store_content_item
+    sci = SimpleContentItem.find(ci.id)
+
+    expect(sci.respond_to?(:cheese_breed)).to be_true
+  end
+
   it "doesn't claim it responds to methods it doesn't have a hash key for" do
     ci = create_and_store_content_item
     sci = SimpleContentItem.find(ci.id)

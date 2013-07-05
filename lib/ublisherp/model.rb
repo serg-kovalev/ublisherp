@@ -227,11 +227,17 @@ class Ublisherp::Model < OpenStruct
 
   def method_missing(name, *args, &block)
     name = name.to_sym
-    unless to_h.keys.include?(name) || self.known_fields.include?(name)
+    unless to_h.keys.include?(name) || (self.known_fields &&
+                                        self.known_fields.include?(name))
       raise NoMethodError,
         "undefined method `#{name}' for #{self.inspect}:#{self.class.name}"
     end
 
+    super
+  end
+
+  def respond_to?(n)
+    return true if self.known_fields && self.known_fields.include?(n.to_sym)
     super
   end
 end
