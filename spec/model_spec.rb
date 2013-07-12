@@ -175,17 +175,59 @@ describe Ublisherp::Model do
     }.to raise_error(Ublisherp::Model::RecordNotFound)
   end
 
-  it "can retrieve a content item using two indexes" do
-    ci_stuff = create_and_store_content_item(slug: 'stuff', visible: true)
-    ci_things = create_and_store_content_item(slug: 'things', visible: false)
+  def create_multi_index_items
+    @ci_stuff = create_and_store_content_item(slug: 'stuff', visible: true)
+    @ci_cheese = create_and_store_content_item(slug: 'cheese', visible: true)
+    @ci_things = create_and_store_content_item(slug: 'things', visible: false)
 
-    sci_stuff = SimpleContentItem.find(ci_stuff.id)
-    sci_things = SimpleContentItem.find(ci_things.id)
+    @sci_stuff = SimpleContentItem.find(@ci_stuff.id)
+    @sci_cheese = SimpleContentItem.find(@ci_cheese.id)
+    @sci_things = SimpleContentItem.find(@ci_things.id)
+  end
+
+  it "can have scopes defined" do
+    create_multi_index_items
+
+    expect(SimpleContentItem.visible).to match_array([@sci_stuff, @sci_cheese])
+    expect(SimpleContentItem.visible.find(@sci_stuff.id)).to eq(@sci_stuff)
+    expect(-> {
+      SimpleContentItem.visible.find(@sci_things.id)
+    }).to raise_error(Ublisherp::Model::RecordNotFound)
+  end
+
+  it "can retrieve a content item using two indexes" do
+    create_multi_index_items
 
     expect(SimpleContentItem.exists?(slug: 'stuff', visible: true)).to be_true
-    expect(SimpleContentItem.find(slug: 'stuff', visible: true)).to eq(sci_stuff)
+    expect(SimpleContentItem.find(slug: 'stuff', visible: true)).to eq(@sci_stuff)
     expect(SimpleContentItem.exists?(slug: 'things', visible: false)).to be_true
-    expect(SimpleContentItem.find(slug: 'things', visible: false)).to eq(sci_things)
+    expect(SimpleContentItem.find(slug: 'things', visible: false)).
+      to eq(@sci_things)
+
+    expect(SimpleContentItem.where(visible: true)).
+      to match_array([@sci_stuff, @sci_cheese])
+    expect(SimpleContentItem.where(visible: false)).to match_array([@sci_things])
+    expect(SimpleContentItem.where(slug: 'stuff')).to match_array([@sci_stuff])
+    expect(SimpleContentItem.where(slug: 'things')).to match_array([@sci_things])
+    expect(SimpleContentItem.where(slug: 'stuff').where(visible: true)).
+      to match_array([@sci_stuff])
+    expect(SimpleContentItem.where(slug: 'things').where(visible: false)).
+      to match_array([@sci_things])
+  end
+
+  it "can find a record with given conditions" do
+    create_multi_index_items
+
+    expect(SimpleContentItem.where(visible: true).find(@ci_stuff.id)).
+      to eq(@sci_stuff)
+    expect(SimpleContentItem.where(visible: true).find(slug: 'stuff')).
+      to eq(@sci_stuff)
+    expect(-> {
+      SimpleContentItem.where(visible: false).find(@ci_stuff.id)
+    }).to raise_error(Ublisherp::Model::RecordNotFound)
+    expect(-> {
+      SimpleContentItem.where(visible: false).find(slug: 'stuff')
+    }).to raise_error(Ublisherp::Model::RecordNotFound)
 
     expect(SimpleContentItem.exists?(slug: 'stuff', visible: false)).to be_false
     expect {

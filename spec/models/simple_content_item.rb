@@ -3,4 +3,6 @@ class SimpleContentItem < Ublisherp::Model
   belongs_to :section
   has_fields :cheese_breed
   has_many :tags
+
+  scope :visible, -> { where(visible: true) }
 end

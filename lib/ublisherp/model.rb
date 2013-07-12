@@ -45,20 +45,41 @@ class Ublisherp::Model < OpenStruct
       end
     end
 
-    def find(id)
-      key = key_for_id_or_index_finder(id)
+    def scope(name, lambda = nil, &block)
+      block = lambda || block
+      define_singleton_method(name, &block)
+    end
+
+    def where(conditions)
+      Query.new(self).where(conditions)
+    end
+
+    def find(id = nil, **conditions)
+      key = key_for_id_or_index_finder(:first, id, **conditions)
       raise RecordNotFound unless key
       get key
     rescue RecordNotFound
       raise RecordNotFound, "#{self.name} not found with id #{id.inspect}"
     end
 
+    def find_all(conditions)
+      get key_for_id_or_index_finder(:all, **conditions)
+    end
+
     def get(key)
-      data = Ublisherp.redis.get(key)
-      if data
-        deserialize(data, key: key)
+      if key.respond_to?(:each)
+        keys = Array(key)
+        data = Ublisherp.redis.mget(keys)
+        keys.zip(data).map do |key, serialized|
+          deserialize serialized, key: key
+        end
       else
-        raise RecordNotFound, "#{self.name} not found with key #{key}"
+        data = Ublisherp.redis.get(key)
+        if data
+          deserialize(data, key: key)
+        else
+          raise RecordNotFound, "#{self.name} not found with key #{key}"
+        end
       end
     end
 
@@ -100,9 +121,9 @@ class Ublisherp::Model < OpenStruct
 
     alias_method :to_a, :all
 
-    def exists?(id)
-      key = key_for_id_or_index_finder(id)
-      return false if key.nil?
+    def exists?(id = nil, **conditions)
+      key = key_for_id_or_index_finder(:all, id, **conditions)
+      return false if key.blank?
       Ublisherp.redis.exists key
     end
 
@@ -163,22 +184,41 @@ class Ublisherp::Model < OpenStruct
 
     private
 
-    def key_for_id_or_index_finder(id)
-      if id.is_a?(Hash)
-        if id.size > 1
-          Ublisherp.redis.srandmember(
-            secondary_index_key_for_finder_conditions(id))
+    def key_for_id_or_index_finder(amount, id = nil, **conditions)
+      set_cmd = {first: :srandmember, all: :smembers}.fetch(amount)
 
-        elsif id.size == 1
-          Ublisherp.redis.srandmember(
-            RedisKeys.key_for_index(self, id.keys.first,
-                                    id.values.first))
+      if id.is_a?(Hash)
+        conditions.reverse_merge! id
+        id = nil
+      elsif id
+        id_key = RedisKeys.key_for(self, id: id)
+      end
+
+      if conditions.present?
+        index_key = if conditions.size > 1
+                      secondary_index_key_for_finder_conditions(conditions)
+                    elsif conditions.size == 1
+                      RedisKeys.key_for_index(self, conditions.keys.first,
+                                              conditions.values.first)
+                    else
+                      raise "unreachable"
+                    end
+
+        if id
+          if Ublisherp.redis.sismember(index_key, id_key)
+            id_key
+          else
+            nil
+          end
         else
-          raise ArgumentError, "empty conditions"
+          Ublisherp.redis.__send__(set_cmd, index_key)
         end
 
+      elsif id
+        amount == :all ? [id_key] : id_key
+
       else
-        RedisKeys.key_for(self, id: id)
+        raise ArgumentError, "No id or conditions given"
       end
     end
 
