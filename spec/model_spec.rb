@@ -291,6 +291,14 @@ describe Ublisherp::Model do
     expect(sci.enabled).to be_true
   end
 
+  it "has a default field on a model without any defaults" do
+    section = Section.create!(name: "Cheese")
+    section.publish!
+    ssec = SimpleSection.find(section.id)
+
+    expect(ssec.enabled).to be_nil
+  end
+
   it "is associated with another Model object" do
     section_name = "Blah"
     tag_names = ['cheese', 'badgers']
