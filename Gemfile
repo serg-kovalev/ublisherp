@@ -7,4 +7,5 @@ gem 'bundler', '~> 1.3.4'
 gemspec
 
 gem 'redis-namespace', github: 'madebymany/redis-namespace', branch: 'master'
-
+gem 'pry'
+gem 'pry-debugger'
