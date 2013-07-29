@@ -284,6 +284,13 @@ describe Ublisherp::Model do
     expect(sci.respond_to?(:stream)).to be_true
   end
 
+  it "can have a default value for a field that isn't nil" do
+    ci = create_and_store_content_item
+    sci = SimpleContentItem.find(ci.id)
+
+    expect(sci.enabled).to be_true
+  end
+
   it "is associated with another Model object" do
     section_name = "Blah"
     tag_names = ['cheese', 'badgers']

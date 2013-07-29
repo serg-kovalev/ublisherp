@@ -14,7 +14,7 @@ class Ublisherp::Model < OpenStruct
   class_attribute :default_limit_count
   self.default_limit_count = 25
 
-  class_attribute :known_fields
+  class_attribute :known_fields, :known_field_defaults, instance_accessor: false
 
   class << self
 
@@ -34,7 +34,16 @@ class Ublisherp::Model < OpenStruct
     end
 
     def has_fields(*fields)
-      (self.known_fields ||= Set.new).merge fields.map(&:to_sym)
+      options = fields.extract_options!
+      fields.map! &:to_sym
+      (self.known_fields ||= Set.new).merge fields
+
+      if options[:default]
+        self.known_field_defaults ||= {}
+        self.known_field_defaults = self.known_field_defaults.merge(
+          Hash[fields.map { |f| [f, options[:default]] }]
+        )
+      end
     end
 
     def has_stream(name, **default_options)
@@ -267,17 +276,22 @@ class Ublisherp::Model < OpenStruct
 
   def method_missing(name, *args, &block)
     name = name.to_sym
-    unless to_h.keys.include?(name) || (self.known_fields &&
-                                        self.known_fields.include?(name))
+    unless to_h.keys.include?(name) || (self.class.known_fields &&
+                                        self.class.known_fields.include?(name))
       raise NoMethodError,
         "undefined method `#{name}' for #{self.inspect}:#{self.class.name}"
     end
 
-    super
+    super_value = super
+    if super_value.nil? && self.known_field_defaults.has_key?(name)
+      return self.known_field_defaults
+    else
+      super_value
+    end
   end
 
   def respond_to?(n)
-    return true if self.known_fields && self.known_fields.include?(n.to_sym)
+    return true if self.class.known_fields && self.class.known_fields.include?(n.to_sym)
     super
   end
 end
