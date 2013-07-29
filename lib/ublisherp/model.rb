@@ -283,8 +283,8 @@ class Ublisherp::Model < OpenStruct
     end
 
     super_value = super
-    if super_value.nil? && self.known_field_defaults.has_key?(name)
-      return self.known_field_defaults
+    if super_value.nil? && self.class.known_field_defaults.has_key?(name)
+      return self.class.known_field_defaults[name]
     else
       super_value
     end
