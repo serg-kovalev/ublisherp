@@ -8,7 +8,7 @@ gemspec
 
 gem 'redis-namespace', github: 'madebymany/redis-namespace', branch: 'master'
 
-group :development do
+group :debugging do
   gem 'pry'
   gem 'pry-debugger'
 end
