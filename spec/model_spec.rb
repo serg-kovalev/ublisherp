@@ -15,6 +15,20 @@ describe Ublisherp::Model do
     }.to raise_error(Ublisherp::Model::RecordNotFound)
   end
 
+  it 'raises an exception with the conditions in the message' do
+    ci = create_and_store_content_item
+    slug = 'AASDFASDFAWQERQWER'
+
+    begin
+      SimpleContentItem.find(slug: slug)
+    rescue Ublisherp::Model::RecordNotFound => e
+      expect(e.message).to include(slug)
+    else
+      fail "no exception raised"
+    end
+  end
+
+
   it "responds to exists? properly" do
     ci = ContentItem.new(slug: 'cheese')
     ci.save!

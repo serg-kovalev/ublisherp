@@ -68,7 +68,8 @@ class Ublisherp::Model < OpenStruct
       raise RecordNotFound unless key
       get key
     rescue RecordNotFound
-      raise RecordNotFound, "#{self.name} not found with id #{id.inspect}"
+      msg = id ? "id #{id}" : "conditions #{conditions.inspect}"
+      raise RecordNotFound, "#{self.name} not found with #{msg}"
     end
 
     def find_all(conditions)
