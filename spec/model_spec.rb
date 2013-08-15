@@ -148,6 +148,10 @@ describe Ublisherp::Model do
 
     expect(st.stream(max: dupe_score, last_key: dupe_keys.first)).to \
       match_array(expected_scis)
+
+    # page should be ignored when given a last_key
+    expect(st.stream(max: dupe_score, last_key: dupe_keys.first, page: 2)).to \
+      match_array(expected_scis)
   end
 
   it "doesn't crash when it has to remove the last key and there are no more objects to retrieve" do

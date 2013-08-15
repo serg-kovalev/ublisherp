@@ -140,6 +140,7 @@ class Ublisherp::Model < OpenStruct
     def get_sorted_set(key, reverse: true, min: '-inf', max: '+inf',
                        limit_count: nil, page: nil, last_key: nil)
 
+      page = nil if last_key
       limit_count ||= default_limit_count
       adj_limit_count = limit_count
       last_page_count = adj_limit_count
