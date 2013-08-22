@@ -166,9 +166,6 @@ class Ublisherp::Publisher
     end
   end
 
-  def should_publish_to_stream_after_hooks?(stream_spec, stream_obj)
-  end
-
   def unpublish_from_association(assoc_name, *keys)
     Ublisherp.redis.srem(
       RedisKeys.key_for_associations(publishable, assoc_name),
