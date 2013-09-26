@@ -176,9 +176,11 @@ class Ublisherp::Model < OpenStruct
           obj_keys.slice! limit_count..-1
         end
 
-        Ublisherp.redis.mget(*obj_keys).each_with_index do |obj_json, i|
-          key = obj_keys[i]
-          out << deserialize(obj_json, key: key, score: scores[key])
+        if obj_keys.size > 0
+          Ublisherp.redis.mget(*obj_keys).each_with_index do |obj_json, i|
+            key = obj_keys[i]
+            out << deserialize(obj_json, key: key, score: scores[key])
+          end
         end
       end
 
