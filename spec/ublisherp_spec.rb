@@ -173,6 +173,7 @@ describe Ublisherp do
 
       stream_keys = [[tag, :all], [section, :all],
                      [section, :visible_content_items],
+                     [section, :if_stream_in], [section, :unless_stream_in],
                      [section, :content_items]].map do |o|
         Ublisherp::RedisKeys.key_for_stream_of(*o)
       end

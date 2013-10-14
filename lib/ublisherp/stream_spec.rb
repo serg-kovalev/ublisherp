@@ -16,8 +16,8 @@ module Ublisherp
         return false
       end
 
-      if (self.if && !self.if.call(stream_obj)) ||
-        (self.unless && self.unless.call(stream_obj))
+      if (self.if && !self.publishable.instance_exec(stream_obj, &self.if)) ||
+        (self.unless && self.publishable.instance_exec(stream_obj, &self.unless))
         return false
       end
 
