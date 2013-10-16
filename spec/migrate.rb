@@ -7,6 +7,7 @@ class CreateSchema < ActiveRecord::Migration
     t.datetime :null_datetime_at, null: true
     t.integer :stream_score, null: true
     t.boolean :visible, null: false, default: true
+    t.integer :region_id, null: true
     t.timestamps
   end
 
@@ -23,4 +24,6 @@ class CreateSchema < ActiveRecord::Migration
     t.integer :content_item_id
     t.integer :tag_id
   end
+
+  create_table :regions
 end

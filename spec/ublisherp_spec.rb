@@ -294,6 +294,13 @@ describe Ublisherp do
       expect($redis.zrange(stream_key, 0, -1)).to match_array([ici_key])
     end
 
+    it 'has the correct publishable associations for subclasses' do
+      content_item.publish_association_attrs.to_a.
+        should match_array(%i[section tags])
+      inherited_content_item.publish_association_attrs.to_a.
+        should match_array(%i[region section tags])
+    end
+
   end
 end
 

@@ -20,9 +20,23 @@ module Ublisherp::Publishable
       :after_first_publish, :before_unpublish_commit, :before_unpublish,
       :after_unpublish, :before_add_to_stream, :before_first_add_to_stream,
       :after_add_to_stream, :after_first_add_to_stream, :after_remove_from_stream
+
+    class << self
+      alias_method_chain :inherited, :ublisherp_set_recreation
+    end
   end
 
   module ClassMethods
+    def inherited_with_ublisherp_set_recreation(subclass)
+      %i[publish_association_attrs unpublish_association_attrs
+         publish_stream_specs publish_index_attrs].each do |attr|
+
+        subclass.__send__(:"#{attr}=", Set.new(__send__(attr)))
+      end
+
+      inherited_without_ublisherp_set_recreation subclass
+    end
+
     def publish_associations(*assocs, dependent: false)
       assocs ||= []
       self.publish_association_attrs.merge(assocs).tap do

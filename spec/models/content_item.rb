@@ -40,6 +40,10 @@ class ContentItem < ActiveRecord::Base
 end
 
 class InheritedContentItem < ContentItem
+  belongs_to :region
+
+  publish_associations :region
+
   def hmm?
     true
   end
