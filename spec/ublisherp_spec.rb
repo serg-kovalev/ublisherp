@@ -107,13 +107,23 @@ describe Ublisherp do
       content_item.should_receive(:after_first_publish_callback_test)
       content_item.should_receive(:before_add_to_stream_callback_test).
         at_least(:once)
+      content_item.should_receive(:before_add_to_type_stream_callback_test).
+        at_least(:once)
       content_item.should_receive(:after_add_to_stream_callback_test).
+        at_least(:once)
+      content_item.should_receive(:after_add_to_type_stream_callback_test).
         at_least(:once)
       content_item.should_receive(:before_first_add_to_stream_callback_test).
         at_least(:once)
+      content_item.should_receive(
+        :before_first_add_to_type_stream_callback_test).at_least(:once)
       content_item.should_receive(:after_first_add_to_stream_callback_test).
         at_least(:once)
+      content_item.should_receive(:after_first_add_to_type_stream_callback_test).
+        at_least(:once)
       content_item.should_not_receive(:after_remove_from_stream_callback_test)
+      content_item.should_not_receive(
+        :after_remove_from_type_stream_callback_test)
       content_item.publish!
     end
 
@@ -122,7 +132,11 @@ describe Ublisherp do
       content_item.should_not_receive(:before_first_publish_callback_test)
       content_item.should_not_receive(:after_first_publish_callback_test)
       content_item.should_not_receive(:before_first_add_to_stream_callback_test)
+      content_item.should_not_receive(
+        :before_first_add_to_type_stream_callback_test)
       content_item.should_not_receive(:after_first_add_to_stream_callback_test)
+      content_item.should_not_receive(
+        :after_first_add_to_type_stream_callback_test)
       content_item.publish!
     end
 
@@ -152,12 +166,11 @@ describe Ublisherp do
       wrong_stream_key = Ublisherp::RedisKeys.key_for_stream_of(content_item,
                                                                 :all)
       content_key = Ublisherp::RedisKeys.key_for(content_item)
+      expect($redis.zcard(wrong_stream_key)).to eq(0)
 
       [tag, section].each do |o|
         stream_key = Ublisherp::RedisKeys.key_for_stream_of(o, :all)
-
         expect($redis.zrange(stream_key, 0, -1)).to eq([content_key])
-        expect($redis.zcard(wrong_stream_key)).to eq(0)
       end
     end
 
@@ -175,8 +188,11 @@ describe Ublisherp do
                      [section, :visible_content_items],
                      [section, :if_stream_in], [section, :unless_stream_in],
                      [section, :content_items]].map do |o|
-        Ublisherp::RedisKeys.key_for_stream_of(*o)
+        Ublisherp::RedisKeys.key_for_stream_of *o
       end
+      stream_keys.concat [[ContentItem, :all], [ContentItem, :visible]].map { |o|
+        Ublisherp::RedisKeys.key_for_type_stream_of *o
+      }
 
       expect($redis.smembers(stream_set_key)).to match_array(stream_keys)
     end
@@ -299,6 +315,39 @@ describe Ublisherp do
         should match_array(%i[section tags])
       inherited_content_item.publish_association_attrs.to_a.
         should match_array(%i[region section tags])
+    end
+
+    it "publishes a type stream of content items" do
+      content_item.save!
+      content_item.publish!
+      content_item_key = Ublisherp::RedisKeys.key_for(content_item)
+
+      stream_key = Ublisherp::RedisKeys.key_for_type_stream_of(ContentItem, :all)
+      expect($redis.zrange(stream_key, 0, -1)).to eq([content_item_key])
+    end
+
+    it "publishes a visible content item to the visible content item type stream" do
+      content_item.visible = true
+      content_item.save!
+      content_item.publish!
+      content_item_key = Ublisherp::RedisKeys.key_for(content_item)
+
+
+      stream_key = Ublisherp::RedisKeys.key_for_type_stream_of(ContentItem,
+                                                               :visible)
+      expect($redis.zrange(stream_key, 0, -1)).to eq([content_item_key])
+    end
+
+    it "publishes a visible content item to the visible content item type stream" do
+      content_item.visible = false
+      content_item.save!
+      content_item.publish!
+      content_item_key = Ublisherp::RedisKeys.key_for(content_item)
+
+
+      stream_key = Ublisherp::RedisKeys.key_for_type_stream_of(ContentItem,
+                                                               :visible)
+      expect($redis.zrange(stream_key, 0, -1)).to eq([])
     end
 
   end

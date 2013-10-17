@@ -24,6 +24,7 @@ class Ublisherp::Publisher
 
     publish_associations **options
     publish_streams **options
+    publish_type_streams
     publish_indexes
 
     publishable.run_hook :after_first_publish, options if first_publish
@@ -162,6 +163,57 @@ class Ublisherp::Publisher
       end
 
       Ublisherp.redis.sadd RedisKeys.key_for_has_streams(publishable),
+        stream.key
+    end
+  end
+
+  def publish_type_streams
+    # Yes, very similar to publish_streams, and could be refactored Some Day.
+
+    publishable.publish_type_stream_specs.each do |stream_spec|
+      stream = stream_spec.for_publishable(publishable)
+      streams_set_key = RedisKeys.key_for_streams_set(publishable)
+      first_stream_add = stream.first_stream_add?(publishable)
+
+      check_hooks = lambda {
+        if publishable.run_hook(:before_add_to_type_stream, stream.name) == false
+          return false
+        end
+
+        if first_stream_add &&
+           publishable.run_hook(:before_first_add_to_type_stream, stream.name) == false
+          return false
+        end
+
+        return true
+      }
+
+
+      if stream.add_to_stream?(publishable) && check_hooks.call
+        Ublisherp.redis.multi do
+          Ublisherp.redis.zadd stream.key, score_for(publishable),
+            publishable_key
+          Ublisherp.redis.sadd streams_set_key, stream.key
+        end
+
+        if first_stream_add
+          publishable.run_hook :after_first_add_to_type_stream, stream.name
+        end
+        publishable.run_hook :after_add_to_type_stream, stream.name
+
+      else
+        Ublisherp.redis.multi do
+          Ublisherp.redis.zrem stream.key, publishable_key
+          Ublisherp.redis.srem streams_set_key, stream.key
+        end
+
+        unless first_stream_add
+          publishable.run_hook :after_remove_from_type_stream, publishable,
+            stream.name
+        end
+      end
+
+      Ublisherp.redis.sadd RedisKeys.key_for_has_type_streams(publishable),
         stream.key
     end
   end

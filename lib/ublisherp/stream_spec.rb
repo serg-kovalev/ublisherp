@@ -2,9 +2,11 @@ require 'ostruct'
 
 module Ublisherp
   class StreamSpec < OpenStruct
+    class_attribute :stream_class_name
+    self.stream_class_name = "Ublisherp::Stream"
 
     def for_publishable(p)
-      Stream.new(to_h.merge(publishable: p))
+      stream_class_name.constantize.new(to_h.merge(publishable: p))
     end
 
     def classes
@@ -23,5 +25,9 @@ module Ublisherp
 
       return true
     end
+  end
+
+  class TypeStreamSpec < StreamSpec
+    self.stream_class_name = "Ublisherp::TypeStream"
   end
 end

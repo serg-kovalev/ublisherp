@@ -4,22 +4,28 @@ require 'securerandom'
 module Ublisherp::Publishable
   extend ActiveSupport::Concern
 
-  included do
-    class_attribute :publish_association_attrs
-    class_attribute :unpublish_association_attrs
-    class_attribute :publish_stream_specs
-    class_attribute :publish_index_attrs
+  CLASS_ATTRIBUTE_SETS = %i[
+    publish_association_attrs
+    unpublish_association_attrs
+    publish_stream_specs
+    publish_type_stream_specs
+    publish_index_attrs
+  ]
 
-    self.publish_association_attrs = Set.new
-    self.unpublish_association_attrs = Set.new
-    self.publish_stream_specs = Set.new
-    self.publish_index_attrs = Set.new
+  included do
+    CLASS_ATTRIBUTE_SETS.each do |attr|
+      class_attribute attr
+      self.__send__("#{attr}=", Set.new)
+    end
 
     include Hooks
     define_hooks :before_publish, :before_first_publish, :after_publish,
       :after_first_publish, :before_unpublish_commit, :before_unpublish,
       :after_unpublish, :before_add_to_stream, :before_first_add_to_stream,
-      :after_add_to_stream, :after_first_add_to_stream, :after_remove_from_stream
+      :after_add_to_stream, :after_first_add_to_stream,
+      :after_remove_from_stream, :before_add_to_type_stream,
+      :before_first_add_to_type_stream, :after_add_to_type_stream,
+      :after_first_add_to_type_stream, :after_remove_from_type_stream
 
     class << self
       alias_method_chain :inherited, :ublisherp_set_recreation
@@ -28,10 +34,8 @@ module Ublisherp::Publishable
 
   module ClassMethods
     def inherited_with_ublisherp_set_recreation(subclass)
-      %i[publish_association_attrs unpublish_association_attrs
-         publish_stream_specs publish_index_attrs].each do |attr|
-
-        subclass.__send__(:"#{attr}=", Set.new(__send__(attr)))
+      CLASS_ATTRIBUTE_SETS.each do |attr|
+        subclass.__send__("#{attr}=", Set.new(__send__(attr)))
       end
 
       inherited_without_ublisherp_set_recreation subclass
@@ -49,13 +53,19 @@ module Ublisherp::Publishable
     end
 
     def publish_stream(name: :all, **options)
-      self.publish_stream_specs.add Ublisherp::StreamSpec.new(options.merge(name: name))
+      self.publish_stream_specs.
+        add Ublisherp::StreamSpec.new(options.merge(name: name))
     end
 
     def publish_stream_of_model(model_cls, **options)
       options.merge! name: model_cls.model_name.plural.underscore.to_sym,
                      class: model_cls
       publish_stream **options
+    end
+
+    def publish_type_stream(name: :all, **options)
+      self.publish_type_stream_specs.
+        add Ublisherp::TypeStreamSpec.new(options.merge(name: name))
     end
 
     def publish_indexes(*attrs)

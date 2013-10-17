@@ -154,6 +154,25 @@ describe Ublisherp::Model do
       match_array(expected_scis)
   end
 
+  it "returns a type stream of objects" do
+    ci = create_and_store_content_item(stream_score: Time.now - 60)
+    ci2 = create_and_store_content_item(stream_score: Time.now, visible: false)
+    [ci, ci2].each &:publish!
+
+    sci = SimpleContentItem.find(ci.id)
+    sci2 = SimpleContentItem.find(ci2.id)
+
+    stream_arr = SimpleContentItem.type_stream
+    expect(stream_arr).to eq([sci2, sci])
+    expect(stream_arr.has_more?).to be_false
+
+    stream_arr = SimpleContentItem.type_stream(reverse: false)
+    expect(stream_arr).to eq([sci, sci2])
+    expect(stream_arr.has_more?).to be_false
+
+    expect(SimpleContentItem.visible).to eq([sci])
+  end
+
   it "doesn't crash when it has to remove the last key and there are no more objects to retrieve" do
     stream_time = Time.now.change(ms: 0).to_i
     cis = []

@@ -26,6 +26,14 @@ module Ublisherp::RedisKeys
     "#{obj.published_type}:all"
   end
 
+  def self.key_for_type_stream_of(obj, name)
+    "#{class_name_for(obj)}:streams:#{name}"
+  end
+
+  def self.key_for_has_type_streams(obj)
+    "#{class_name_for(obj)}:has_streams"
+  end
+
   def self.key_for_associations(obj, assoc)
     "#{key_for(obj)}:associations:#{assoc}"
   end

@@ -54,6 +54,14 @@ class Ublisherp::Model < OpenStruct
       end
     end
 
+    def has_type_stream(name, **default_options)
+      define_singleton_method name do |**options|
+        options.reverse_merge! default_options
+        options.merge! name: name
+        type_stream **options
+      end
+    end
+
     def scope(name, lambda = nil, &block)
       block = lambda || block
       define_singleton_method(name, &block)
@@ -135,6 +143,11 @@ class Ublisherp::Model < OpenStruct
       key = key_for_id_or_index_finder(:all, id, **conditions)
       return false if key.blank?
       Ublisherp.redis.exists key
+    end
+
+    def type_stream(name: :all, **options)
+      get_sorted_set(RedisKeys.key_for_type_stream_of(self, name),
+                     **options)
     end
 
     def get_sorted_set(key, reverse: true, min: '-inf', max: '+inf',
