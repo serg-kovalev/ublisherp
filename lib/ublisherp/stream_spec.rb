@@ -9,12 +9,11 @@ module Ublisherp
       stream_class_name.constantize.new(to_h.merge(publishable: p))
     end
 
-    def classes
-      Array(self[:class])
-    end
-
     def add_to_stream?(stream_obj)
-      if self.classes.present? && !self.classes.any? { |cls| cls === stream_obj }
+      classes = Array(self[:class]).map { |c|
+        c.is_a?(Class) ? c : c.to_s.constantize
+      }
+      if classes.present? && !classes.any? { |cls| cls === stream_obj }
         return false
       end
 
