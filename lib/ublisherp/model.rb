@@ -137,6 +137,16 @@ class Ublisherp::Model < OpenStruct
       get_sorted_set RedisKeys.key_for_all(self), **options
     end
 
+    def first(**options)
+      options.merge! limit_count: 1, reverse: false
+      get_sorted_set(RedisKeys.key_for_all(self), **options).first
+    end
+
+    def last(**options)
+      options.merge! limit_count: 1, reverse: true
+      get_sorted_set(RedisKeys.key_for_all(self), **options).first
+    end
+
     alias_method :to_a, :all
 
     def exists?(id = nil, **conditions)

@@ -201,6 +201,17 @@ describe Ublisherp::Model do
     expect(SimpleContentItem.all(reverse: false)).to eq([sci, sci2])
   end
 
+  it 'returns first and last objects published' do
+    ci = create_and_store_content_item(stream_score: Time.now - 60)
+    ci2 = create_and_store_content_item(stream_score: Time.now)
+
+    sci = SimpleContentItem.find(ci.id)
+    sci2 = SimpleContentItem.find(ci2.id)
+
+    expect(SimpleContentItem.first).to eq(sci)
+    expect(SimpleContentItem.last).to eq(sci2)
+  end
+
   it 'can retrieve a content item by indexed attribute' do
     ci = create_and_store_content_item(slug: 'a-crazy-badger')
     sci = SimpleContentItem.find(ci.id)
