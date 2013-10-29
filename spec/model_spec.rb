@@ -361,4 +361,8 @@ describe Ublisherp::Model do
     expect(sci.section.name).to eq(section_name)
     expect(sci.tags.map(&:name)).to match_array(tag_names)
   end
+
+  it "doesn't crash if .get is called with an empty array" do
+    expect(SimpleContentItem.get([])).to eq([])
+  end
 end

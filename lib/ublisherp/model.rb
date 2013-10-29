@@ -87,6 +87,7 @@ class Ublisherp::Model < OpenStruct
     def get(key)
       if key.respond_to?(:each)
         keys = Array(key)
+        return keys if keys.empty?
         data = Ublisherp.redis.mget(keys)
         keys.zip(data).map do |key, serialized|
           deserialize serialized, key: key
