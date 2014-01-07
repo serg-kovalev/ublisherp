@@ -125,7 +125,7 @@ class Ublisherp::Model < OpenStruct
       end
 
       model_class.has_many.each do |attr|
-        object_attrs[attr] = object_attrs[:"#{attr}_ids"].map { |key|
+        object_attrs[attr] = (object_attrs[:"#{attr}_ids"] || []).map { |key|
           get key
         }
       end
