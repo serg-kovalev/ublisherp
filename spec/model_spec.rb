@@ -370,7 +370,7 @@ describe Ublisherp::Model do
     key = Ublisherp::RedisKeys.key_for(object)
     current_redis_value = Ublisherp::Serializer.load Ublisherp.redis.get(key)
 
-    block_return = block.call(current_redis_value)
+    block_return = yield current_redis_value
 
     new_redis_value = Ublisherp::Serializer.dump block_return
     Ublisherp.redis.set key, new_redis_value
