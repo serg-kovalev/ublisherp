@@ -365,4 +365,26 @@ describe Ublisherp::Model do
   it "doesn't crash if .get is called with an empty array" do
     expect(SimpleContentItem.get([])).to eq([])
   end
+
+  def override_redis_value_for(object, &block)
+    key = Ublisherp::RedisKeys.key_for(object)
+    current_redis_value = Ublisherp::Serializer.load Ublisherp.redis.get(key)
+
+    block_return = block.call(current_redis_value)
+
+    new_redis_value = Ublisherp::Serializer.dump block_return
+    Ublisherp.redis.set key, new_redis_value
+  end
+
+  it "has_many defaults to empty array if ids array is nil" do
+    ci = create_and_store_content_item
+
+    override_redis_value_for(ci) do |value|
+      value[:content_item].delete(:tags_ids)
+      value
+    end
+
+    sci = SimpleContentItem.find(ci.id)
+    expect(sci.tags).to be_empty
+  end
 end
