@@ -158,6 +158,34 @@ describe Ublisherp do
       expect($redis.get(Ublisherp::RedisKeys.key_for(section))).to_not be_nil
     end
 
+    it "unpublishes multiple missing associated objects when a new one is published" do
+
+      tag2 = Tag.create!(name: "Bread")
+      tag3 = Tag.create!(name: "Peaches")
+      tag4 = Tag.create!(name: "Herring")
+      tag5 = Tag.create!(name: "Ostrich")
+
+      content_item.tags = [tag, tag2, tag3]
+      content_item.save!
+      content_item.publish!
+
+      expect(Set.new($redis.smembers(
+        Ublisherp::RedisKeys.key_for_associations(content_item, :tags)))).to \
+        eq(Set.new([tag, tag2, tag3].map { |t|
+          Ublisherp::RedisKeys.key_for(t)
+        }))
+
+      content_item.tags = [tag3, tag4, tag5]
+      content_item.save!
+      content_item.publish!
+
+      expect(Set.new($redis.smembers(
+        Ublisherp::RedisKeys.key_for_associations(content_item, :tags)))).to \
+        eq(Set.new([tag3, tag4, tag5].map { |t|
+          Ublisherp::RedisKeys.key_for(t)
+        }))
+    end
+
     it 'publishes a content item to a tag stream' do
       content_item.tags << tag
       content_item.save!

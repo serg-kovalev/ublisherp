@@ -221,7 +221,7 @@ class Ublisherp::Publisher
   def unpublish_from_association(assoc_name, *keys)
     Ublisherp.redis.srem(
       RedisKeys.key_for_associations(publishable, assoc_name),
-      *keys.to_a)
+      keys.to_a)
   end
 
   def unpublish_from_streams_of_associations(keys)
