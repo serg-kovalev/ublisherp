@@ -2,11 +2,11 @@ source "http://rubygems.org"
 
 ruby '2.0.0'
 
-gem 'bundler', '~> 1.3.4'
+gem 'bundler', '~> 1.7.3'
 
 gemspec
 
-gem 'redis-namespace', github: 'madebymany/redis-namespace', branch: 'master'
+gem 'redis-namespace', '~> 1.5.1'
 
 group :debugging do
   gem 'pry'

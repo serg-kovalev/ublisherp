@@ -1,11 +1,3 @@
-GIT
-  remote: git://github.com/madebymany/redis-namespace.git
-  revision: 4d6278173b219afa950f8ff282ac6221f2aeeb9e
-  branch: master
-  specs:
-    redis-namespace (1.3.0)
-      redis (~> 3.0.0)
-
 PATH
   remote: .
   specs:
@@ -56,6 +48,8 @@ GEM
       debugger (~> 1.3)
       pry (~> 0.9.10)
     redis (3.0.4)
+    redis-namespace (1.5.1)
+      redis (~> 3.0, >= 3.0.4)
     rspec (2.13.0)
       rspec-core (~> 2.13.0)
       rspec-expectations (~> 2.13.0)
@@ -73,10 +67,10 @@ PLATFORMS
 
 DEPENDENCIES
   activerecord (~> 3.2)
-  bundler (~> 1.3.4)
+  bundler (~> 1.7.3)
   pry
   pry-debugger
-  redis-namespace!
+  redis-namespace (~> 1.5.1)
   rspec
   sqlite3
   ublisherp!
