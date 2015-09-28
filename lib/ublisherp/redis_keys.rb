@@ -3,7 +3,7 @@ require 'digest/sha2'
 module Ublisherp::RedisKeys
   Nothing = Object.new
 
-  def self.class_name_for(obj, id: nil)
+  def self.class_name_for(obj, id = nil)
     if obj.respond_to?(:published_type)
       obj.published_type
     else # We are working out the key from an instance of an object
@@ -11,14 +11,14 @@ module Ublisherp::RedisKeys
     end
   end
 
-  def self.key_for(obj, id: nil)
+  def self.key_for(obj, id = nil)
     return obj if obj.is_a?(String)
 
     if id.nil? && obj.id.blank?
       raise ArgumentError, "Object doesn't have an id yet"
     end
 
-    "#{class_name_for(obj, id: id)}:#{id || obj.id}"
+    "#{class_name_for(obj, id)}:#{id || obj.id}"
   end
 
   def self.key_for_all(obj)
@@ -42,7 +42,7 @@ module Ublisherp::RedisKeys
     "#{key_for(obj)}:has_streams"
   end
 
-  def self.key_for_stream_of(obj, name, id: nil)
+  def self.key_for_stream_of(obj, name, id = nil)
     "#{key_for(obj, id: id)}:streams:#{name}"
   end
 
