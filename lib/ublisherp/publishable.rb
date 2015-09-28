@@ -41,7 +41,7 @@ module Ublisherp::Publishable
       inherited_without_ublisherp_set_recreation subclass
     end
 
-    def publish_associations(*assocs, dependent: false)
+    def publish_associations(*assocs, dependent = false)
       assocs ||= []
       self.publish_association_attrs.merge(assocs).tap do
         self.unpublish_association_attrs.merge(assocs) if dependent
@@ -52,7 +52,7 @@ module Ublisherp::Publishable
       self.unpublish_association_attrs.merge assocs
     end
 
-    def publish_stream(name: :all, **options)
+    def publish_stream(name = :all, **options)
       self.publish_stream_specs.
         add Ublisherp::StreamSpec.new(options.merge(name: name))
     end
@@ -63,7 +63,7 @@ module Ublisherp::Publishable
       publish_stream **options
     end
 
-    def publish_type_stream(name: :all, **options)
+    def publish_type_stream(name = :all, **options)
       self.publish_type_stream_specs.
         add Ublisherp::TypeStreamSpec.new(options.merge(name: name))
     end
