@@ -4,12 +4,12 @@ require 'securerandom'
 module Ublisherp::Publishable
   extend ActiveSupport::Concern
 
-  CLASS_ATTRIBUTE_SETS = %i[
-    publish_association_attrs
-    unpublish_association_attrs
-    publish_stream_specs
-    publish_type_stream_specs
-    publish_index_attrs
+  CLASS_ATTRIBUTE_SETS = [
+    :publish_association_attrs,
+    :unpublish_association_attrs,
+    :publish_stream_specs,
+    :publish_type_stream_specs,
+    :publish_index_attrs
   ]
 
   included do
