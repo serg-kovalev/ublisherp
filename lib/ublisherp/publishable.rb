@@ -41,7 +41,7 @@ module Ublisherp::Publishable
       inherited_without_ublisherp_set_recreation subclass
     end
 
-    def publish_associations(*assocs, dependent = false)
+    def publish_associations(*assocs, dependent)
       assocs ||= []
       self.publish_association_attrs.merge(assocs).tap do
         self.unpublish_association_attrs.merge(assocs) if dependent
