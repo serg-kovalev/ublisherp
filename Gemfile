@@ -1,12 +1,12 @@
 source "http://rubygems.org"
 
-ruby '2.0.0'
+ruby '1.9.3'
 
 gem 'bundler', '~> 1.7.3'
 
 gemspec
 
-gem 'redis-namespace', '~> 1.5.1'
+gem 'redis-namespace', '>= 1.1.1'
 
 group :debugging do
   gem 'pry'
