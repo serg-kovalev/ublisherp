@@ -171,9 +171,15 @@ class Ublisherp::Model < OpenStruct
                      *options)
     end
 
-    def get_sorted_set(key, reverse: true, min: '-inf', max: '+inf',
-                       limit_count: nil, page: nil, last_key: nil)
-
+    def get_sorted_set(key, *options)
+      options = options.extract_options!
+      reverse = options.fetch(:reverse, true)
+      min = options.fetch(:min, '-inf')
+      max = options.fetch(:max, '+inf')
+      limit_count = options.fetch(:limit_count, nil)
+      page = options.fetch(:page, nil)
+      last_key = options.fetch(:last_key, nil)
+     
       page = nil if last_key
       limit_count ||= default_limit_count
       adj_limit_count = limit_count
