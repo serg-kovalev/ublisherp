@@ -60,7 +60,7 @@ class Ublisherp::Model < OpenStruct
       define_singleton_method name do |*options|
         options.reverse_merge! default_options
         options.merge! name: name
-        type_stream **options
+        type_stream *options
       end
     end
 
@@ -311,7 +311,7 @@ class Ublisherp::Model < OpenStruct
     name ||= :all
     options = options.extract_options!
     key = RedisKeys.key_for_stream_of(self.class, name, id: id)
-    self.class.get_sorted_set(key, **options)
+    self.class.get_sorted_set(key, *options)
   end
 
 
