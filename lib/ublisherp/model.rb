@@ -157,14 +157,15 @@ class Ublisherp::Model < OpenStruct
 
     alias_method :to_a, :all
 
-    def exists?(id = nil, *conditions)
+    def exists?(id, *conditions)
       conditions = conditions.extract_options!
       key = key_for_id_or_index_finder(:all, id, *conditions)
       return false if key.blank?
       Ublisherp.redis.exists key
     end
 
-    def type_stream(name: :all, *options)
+    def type_stream(name, *options)
+      name ||= :all
       options = options.extract_options!
       get_sorted_set(RedisKeys.key_for_type_stream_of(self, name),
                      *options)
