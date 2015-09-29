@@ -7,7 +7,8 @@ class Ublisherp::Publisher
     @publishable = publishable
   end
 
-  def publish!(**options)
+  def publish!(*options)
+    options = options.extract_options!
     return if publishable.run_hook(:before_publish, options) == false
     first_publish = !Ublisherp.redis.exists(publishable_key)
     if first_publish
@@ -22,8 +23,8 @@ class Ublisherp::Publisher
                            publishable_key
     end
 
-    publish_associations **options
-    publish_streams **options
+    publish_associations *options
+    publish_streams *options
     publish_type_streams
     publish_indexes
 
@@ -31,7 +32,8 @@ class Ublisherp::Publisher
     publishable.run_hook :after_publish, options
   end
 
-  def unpublish!(**options)
+  def unpublish!(*options)
+    options = options.extract_options!
     return if publishable.run_hook(:before_unpublish, options) == false
 
     exec_or_ignore
@@ -60,7 +62,8 @@ class Ublisherp::Publisher
 
   private
   
-  def publish_associations(**published)
+  def publish_associations(*published)
+    published = published.extract_options!
     already_published = published.values
 
     publishable.publish_association_attrs.each do |assoc_name|
@@ -107,7 +110,8 @@ class Ublisherp::Publisher
     end
   end
 
-  def publish_streams(**assocs)
+  def publish_streams(*assocs)
+    assocs = assocs.extract_options!
     publishable.publish_stream_specs.each do |stream_spec|
       stream = stream_spec.for_publishable(publishable)
       stream_assocs = if stream.associations.nil?
