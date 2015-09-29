@@ -46,16 +46,18 @@ class Ublisherp::Model < OpenStruct
       end
     end
 
-    def has_stream(name, **default_options)
-      define_method name do |**options|
+    def has_stream(name, *default_options)
+      default_options = default_options.extract_options!
+      define_method name do |*options|
         options.reverse_merge! default_options
         options.merge! name: name
-        stream **options
+        stream *options
       end
     end
 
-    def has_type_stream(name, **default_options)
-      define_singleton_method name do |**options|
+    def has_type_stream(name, *default_options)
+      default_options = default_options.extract_options!
+      define_singleton_method name do |*options|
         options.reverse_merge! default_options
         options.merge! name: name
         type_stream **options
@@ -71,8 +73,9 @@ class Ublisherp::Model < OpenStruct
       Query.new(self).where(conditions)
     end
 
-    def find(id = nil, **conditions)
-      key = key_for_id_or_index_finder(:first, id, **conditions)
+    def find(id = nil, *conditions)
+      conditions = conditions.extract_options!
+      key = key_for_id_or_index_finder(:first, id, *conditions)
       raise RecordNotFound unless key
       get key
     rescue RecordNotFound
@@ -102,7 +105,8 @@ class Ublisherp::Model < OpenStruct
       end
     end
 
-    def deserialize(data, **extra)
+    def deserialize(data, *extra)
+      extra = extra.extract_options!
       raise ArgumentError, "no key supplied" unless extra[:key]
       extra[:score] ||= nil
 
@@ -134,31 +138,36 @@ class Ublisherp::Model < OpenStruct
       model_class.new(object_attrs)
     end
 
-    def all(**options)
-      get_sorted_set RedisKeys.key_for_all(self), **options
+    def all(*options)
+      options = options.extract_options!
+      get_sorted_set RedisKeys.key_for_all(self), *options
     end
 
-    def first(**options)
+    def first(*options)
+      options = options.extract_options!
       options.merge! limit_count: 1, reverse: false
-      get_sorted_set(RedisKeys.key_for_all(self), **options).first
+      get_sorted_set(RedisKeys.key_for_all(self), *options).first
     end
 
-    def last(**options)
+    def last(*options)
+      options = options.extract_options!
       options.merge! limit_count: 1, reverse: true
-      get_sorted_set(RedisKeys.key_for_all(self), **options).first
+      get_sorted_set(RedisKeys.key_for_all(self), *options).first
     end
 
     alias_method :to_a, :all
 
-    def exists?(id = nil, **conditions)
-      key = key_for_id_or_index_finder(:all, id, **conditions)
+    def exists?(id = nil, *conditions)
+      conditions = conditions.extract_options!
+      key = key_for_id_or_index_finder(:all, id, *conditions)
       return false if key.blank?
       Ublisherp.redis.exists key
     end
 
-    def type_stream(name: :all, **options)
+    def type_stream(name: :all, *options)
+      options = options.extract_options!
       get_sorted_set(RedisKeys.key_for_type_stream_of(self, name),
-                     **options)
+                     *options)
     end
 
     def get_sorted_set(key, reverse: true, min: '-inf', max: '+inf',
@@ -221,7 +230,8 @@ class Ublisherp::Model < OpenStruct
 
     private
 
-    def key_for_id_or_index_finder(amount, id = nil, **conditions)
+    def key_for_id_or_index_finder(amount, id = nil, *conditions)
+      conditions = conditions.extract_options!
       set_cmd = {first: :srandmember, all: :smembers}.fetch(amount)
 
       if id.is_a?(Hash)
@@ -290,7 +300,9 @@ class Ublisherp::Model < OpenStruct
     "<#{self.class.name} id='#{id}'>"
   end
 
-  def stream(name: :all, **options)
+  def stream(nam, *options)
+    name ||= :all
+    options = options.extract_options!
     key = RedisKeys.key_for_stream_of(self.class, name, id: id)
     self.class.get_sorted_set(key, **options)
   end
