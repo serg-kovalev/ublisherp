@@ -52,8 +52,9 @@ module Ublisherp::Publishable
       self.unpublish_association_attrs.merge assocs
     end
 
-    def publish_stream(name, **options)
+    def publish_stream(name, *options)
       name |=  :all
+      options = options.extract_options!
       self.publish_stream_specs.
         add Ublisherp::StreamSpec.new(options.merge(name: name))
     end
