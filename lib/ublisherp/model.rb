@@ -318,6 +318,11 @@ class Ublisherp::Model < OpenStruct
   def as_json(opts={})
     to_h
   end
+  
+  # mapping array into a hash
+  def to_h(&block)
+    inject({}) {|hash, *v| block.call(hash, *v); hash}
+  end
 
   alias :attributes :to_h
 
