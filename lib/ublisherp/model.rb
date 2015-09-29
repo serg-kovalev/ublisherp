@@ -84,7 +84,7 @@ class Ublisherp::Model < OpenStruct
     end
 
     def find_all(conditions)
-      get key_for_id_or_index_finder(:all, **conditions)
+      get key_for_id_or_index_finder(:all, *conditions)
     end
 
     def get(key)
