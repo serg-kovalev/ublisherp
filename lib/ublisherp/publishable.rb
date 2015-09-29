@@ -58,13 +58,16 @@ module Ublisherp::Publishable
         add Ublisherp::StreamSpec.new(options.merge(name: name))
     end
 
-    def publish_stream_of_model(model_cls, **options)
+    def publish_stream_of_model(model_cls, *options)
+      options = options.extract_options!
       options.merge! name: model_cls.model_name.plural.underscore.to_sym,
                      class: model_cls
       publish_stream **options
     end
 
-    def publish_type_stream(name = :all, **options)
+    def publish_type_stream(name, *options)
+      name ||= :all
+      options = options.extract_options!
       self.publish_type_stream_specs.
         add Ublisherp::TypeStreamSpec.new(options.merge(name: name))
     end
@@ -125,12 +128,14 @@ module Ublisherp::PublishableWithInstanceShortcuts
   include Ublisherp::Publishable
 
 
-  def publish!(**options)
-    publisher.publish!(**options)
+  def publish!(*options)
+    options = options.extract_options!
+    publisher.publish!(*options)
   end
 
-  def unpublish!(**options)
-    publisher.unpublish!(**options)
+  def unpublish!(*options)
+    options = options.extract_options!
+    publisher.unpublish!(*options)
   end
 
 end
