@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.test_files    = Dir[File.join(root, 'spec/**/*.rb')]
   s.require_paths = ['lib']
 
-  s.add_runtime_dependency 'redis', '~> 3.0'
+  s.add_runtime_dependency 'redis', '>= 2.2.2'
   s.add_runtime_dependency 'redis-namespace'
   s.add_runtime_dependency 'activesupport', '>= 3.2'
   s.add_runtime_dependency 'activemodel', '>= 3.2', '< 5'
